@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import TopBar from "../components/TopBar";
 import { useAuth } from "../lib/auth-context";
@@ -14,14 +14,19 @@ const tiles = [
   { href: "/eierskifte", label: "Eierskifte", sub: "Overfør eierskap", icon: "swap_horiz" },
 ];
 
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
 };
 
-const itemAnim = {
+const itemAnim: Variants = {
   hidden: { opacity: 0, y: 30, scale: 0.95 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const },
+  },
 };
 
 function greeting() {

@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import TopBar from "../components/TopBar";
 import type { Item } from "./MapView";
-import { items as itemsApi } from "../lib/api";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { items as itemsApi, API_BASE } from "../lib/api";
+import { useToast } from "../components/Toast";
+import { setGeoConsent } from "../lib/use-geolocation";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
@@ -30,11 +31,44 @@ const statusMeta: Record<Item["status"], { label: string; color: string; bg: str
 };
 
 export default function SporingPage() {
+  const router = useRouter();
+  const toast = useToast();
   const [items, setItems] = useState<Item[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [address, setAddress] = useState<string>("");
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number; nonce: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const goToMyLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Posisjonstjenester er ikke tilgjengelig på denne enheten");
+      return;
+    }
+    setLocating(true);
+    setSelectedId(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoConsent(true);
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setUserPosition({ lat, lng });
+        setFlyTo({ lat, lng, zoom: 16, nonce: Date.now() });
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          toast.error("Posisjon er avslått — aktiver det i innstillinger");
+        } else {
+          toast.error(err.message || "Kunne ikke hente posisjon");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 30_000 }
+    );
+  };
 
   useEffect(() => {
     itemsApi
@@ -69,7 +103,12 @@ export default function SporingPage() {
 
   return (
     <>
-      <TopBar showBack title="Sporing" rightIcon="settings" />
+      <TopBar
+        showBack
+        title="Sporing"
+        rightIcon="settings"
+        onRightClick={() => router.push("/innstillinger")}
+      />
       <main className="relative w-full">
         {/* Map fills viewport behind everything (fixed so it doesn't compete with body flex) */}
         <motion.div
@@ -78,7 +117,13 @@ export default function SporingPage() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="fixed inset-0 pt-16 pb-[90px] z-0"
         >
-          <MapView items={items} selectedId={selectedId} onSelect={setSelectedId} />
+          <MapView
+            items={items}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            flyTo={flyTo}
+            userPosition={userPosition}
+          />
         </motion.div>
 
         {/* Spacer so the page has height (keeps body layout happy) */}
@@ -131,19 +176,26 @@ export default function SporingPage() {
           )}
         </AnimatePresence>
 
-        {/* Recenter / locate button */}
+        {/* My location button — henter ekte GPS-posisjon og flyr kartet dit */}
         <motion.button
           initial={{ scale: 0, rotate: -90 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
-          onClick={() => setSelectedId(null)}
-          className="fixed right-4 bottom-[280px] z-40 w-12 h-12 bg-[#0f2a5c] text-white rounded-2xl flex items-center justify-center shadow-xl shadow-[#0f2a5c]/30"
+          onClick={goToMyLocation}
+          disabled={locating}
+          aria-label="Vis min posisjon"
+          className="fixed right-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 bg-[#0f2a5c] text-white rounded-2xl flex items-center justify-center shadow-xl shadow-[#0f2a5c]/30 disabled:opacity-70"
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-            my_location
-          </span>
+          <motion.span
+            className="material-symbols-outlined"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+            animate={locating ? { rotate: 360 } : { rotate: 0 }}
+            transition={locating ? { duration: 1.2, repeat: Infinity, ease: "linear" } : { duration: 0.2 }}
+          >
+            {locating ? "progress_activity" : "my_location"}
+          </motion.span>
         </motion.button>
 
         {/* Bottom sheet — clickable list (fixed so BottomNav stays below) */}

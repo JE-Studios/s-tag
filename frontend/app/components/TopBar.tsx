@@ -90,18 +90,27 @@ export default function TopBar({
         )}
 
         {showBell && (
-          <Link
-            href="/varsler"
-            className="relative p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-900 transition-colors"
-            aria-label="Varsler"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-            {unread > 0 && (
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-white">
-                {unread > 9 ? "9+" : unread}
-              </span>
-            )}
-          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/varsler"
+              className="relative p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-900 transition-colors"
+              aria-label="Varsler"
+            >
+              <span className="material-symbols-outlined">notifications</span>
+              {unread > 0 && (
+                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-white">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/innstillinger"
+              className="p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-900 transition-colors"
+              aria-label="Innstillinger"
+            >
+              <span className="material-symbols-outlined">settings</span>
+            </Link>
+          </div>
         )}
       </div>
     </motion.header>

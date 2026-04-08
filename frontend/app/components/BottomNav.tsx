@@ -7,7 +7,7 @@ const tabs = [
   { href: "/hjem", label: "Hjem", icon: "home" },
   { href: "/kartotek", label: "Register", icon: "inventory_2" },
   { href: "/sporing", label: "Søk", icon: "search" },
-  { href: "/kontakt", label: "Profil", icon: "person" },
+  { href: "/innstillinger", label: "Profil", icon: "person" },
 ];
 
 const HIDDEN_ROUTES = ["/", "/logg-inn", "/registrer"];
@@ -22,6 +22,7 @@ export default function BottomNav() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
+      aria-label="Hovednavigasjon"
       className="fixed bottom-0 left-0 w-full z-[100] flex justify-around items-center px-4 pt-3 pb-8 bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.05)]"
     >
       {tabs.map((tab) => {
@@ -30,6 +31,8 @@ export default function BottomNav() {
           <Link
             key={tab.href}
             href={tab.href}
+            aria-label={tab.label}
+            aria-current={active ? "page" : undefined}
             className="flex flex-col items-center justify-center px-5 py-2 group relative"
           >
             {active && (

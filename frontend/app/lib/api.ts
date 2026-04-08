@@ -1,7 +1,7 @@
 // S-TAG API client with token injection
-const API_BASE =
-  typeof window !== "undefined" && (window as any).__STAG_API__
-    ? (window as any).__STAG_API__
+export const API_BASE: string =
+  typeof window !== "undefined" && (window as unknown as { __STAG_API__?: string }).__STAG_API__
+    ? ((window as unknown as { __STAG_API__: string }).__STAG_API__)
     : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const TOKEN_KEY = "stag_token";
@@ -53,6 +53,8 @@ export type User = {
   consentPrivacy?: boolean;
   consentLocation?: boolean;
   consentVersion?: string | null;
+  consentTerms?: boolean;
+  consentAcceptedAt?: string | null;
   language?: string;
   lastSeenAt?: string | null;
 };
@@ -95,6 +97,23 @@ export type Transfer = {
   createdAt: string;
   status: "pending" | "accepted" | "rejected";
   acceptedAt?: string;
+  salePriceNok?: number | null;
+  conditionNote?: string | null;
+  sellerName?: string | null;
+  buyerName?: string | null;
+  paymentMethod?: string | null;
+  asIs?: boolean;
+  sellerConfirmedAt?: string | null;
+  buyerConfirmedAt?: string | null;
+  contractVersion?: string | null;
+  sellerSignatureJwt?: string | null;
+  sellerSignatureSub?: string | null;
+  sellerSignatureName?: string | null;
+  sellerSignedAt?: string | null;
+  buyerSignatureJwt?: string | null;
+  buyerSignatureSub?: string | null;
+  buyerSignatureName?: string | null;
+  buyerSignedAt?: string | null;
 };
 
 export type Notification = {
@@ -128,10 +147,16 @@ export type Stats = {
 
 // ---- Auth ----
 export const auth = {
-  register: (email: string, password: string, name: string) =>
+  register: (email: string, password: string, name: string, acceptTerms = true) =>
     request<{ token: string; user: User }>("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({
+        email,
+        password,
+        name,
+        acceptTerms,
+        consentVersion: "2026-04",
+      }),
     }),
   login: (email: string, password: string) =>
     request<{ token: string; user: User }>("/api/auth/login", {
@@ -148,6 +173,22 @@ export const auth = {
     request<{ ok: true }>("/api/auth/password", {
       method: "POST",
       body: JSON.stringify({ oldPassword, newPassword }),
+    }),
+  oauth: (
+    provider: "google" | "apple",
+    idToken: string,
+    name?: string,
+    acceptTerms = false
+  ) =>
+    request<{ token: string; user: User }>("/api/auth/oauth", {
+      method: "POST",
+      body: JSON.stringify({
+        provider,
+        idToken,
+        name,
+        acceptTerms,
+        consentVersion: "2026-04",
+      }),
     }),
   deleteAccount: () => request<{ ok: true }>("/api/auth/me", { method: "DELETE" }),
   exportData: async () => {
@@ -191,15 +232,47 @@ export const chip = {
 };
 
 // ---- Transfers ----
+export type TransferContract = {
+  itemId: string;
+  toEmail: string;
+  salePriceNok: number;
+  conditionNote?: string;
+  paymentMethod?: string;
+  asIs?: boolean;
+  note?: string;
+  confirmContract: true;
+};
+
 export const transfers = {
   list: () => request<Transfer[]>("/api/transfers"),
-  create: (itemId: string, toEmail: string, note?: string) =>
+  create: (contract: TransferContract) =>
     request<Transfer>("/api/transfers", {
       method: "POST",
-      body: JSON.stringify({ itemId, toEmail, note }),
+      body: JSON.stringify(contract),
     }),
-  accept: (id: string) =>
-    request<Transfer>(`/api/transfers/${id}/accept`, { method: "POST" }),
+  accept: (id: string, buyerName?: string) =>
+    request<Transfer>(`/api/transfers/${id}/accept`, {
+      method: "POST",
+      body: JSON.stringify({ confirmContract: true, buyerName }),
+    }),
+};
+
+// ---- BankID signering (Criipto) ----
+export const signing = {
+  status: () => request<{ configured: boolean }>("/api/signing/bankid/status"),
+  start: (transferId: string, role: "seller" | "buyer") =>
+    request<{ authUrl: string }>("/api/signing/bankid/start", {
+      method: "POST",
+      body: JSON.stringify({ transferId, role }),
+    }),
+  callback: (code: string, state: string) =>
+    request<{ ok: true; transferId: string; role: "seller" | "buyer"; signerName?: string; transfer: Transfer }>(
+      "/api/signing/bankid/callback",
+      {
+        method: "POST",
+        body: JSON.stringify({ code, state }),
+      }
+    ),
 };
 
 // ---- Notifications ----
@@ -224,6 +297,22 @@ export const found = {
     data: { finderName?: string; finderContact?: string; message?: string; lat?: number; lng?: number }
   ) =>
     request<{ ok: true }>(`/api/found/${encodeURIComponent(code)}/report`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+// ---- Feedback / kontakt ----
+export const feedback = {
+  send: (data: {
+    kind: "bug" | "feature" | "question" | "other";
+    subject?: string | null;
+    message: string;
+    name?: string | null;
+    email?: string | null;
+    path?: string | null;
+  }) =>
+    request<{ ok: true; id: number }>("/api/feedback", {
       method: "POST",
       body: JSON.stringify(data),
     }),

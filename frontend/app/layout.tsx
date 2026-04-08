@@ -5,8 +5,37 @@ import { AuthProvider } from "./lib/auth-context";
 import { ToastProvider } from "./components/Toast";
 
 export const metadata: Metadata = {
-  title: "S-TAG | Sikring og sporing av dine verdier",
-  description: "Digital registrering, sporing og eierskifte av dine S-TAG-merkede gjenstander. Norges nye standard for eierskap og sporing.",
+  title: "S-TAG | Innebygd sikring for det du eier",
+  description:
+    "S-TAG-chipen støpes inn i produktet av produsenten under produksjon. Registrer, spor og overfør eierskapet digitalt – helt gratis.",
+  applicationName: "S-TAG",
+  authors: [{ name: "S-TAG" }],
+  keywords: [
+    "S-TAG",
+    "sporing",
+    "NFC",
+    "eierskap",
+    "sykkel",
+    "ski",
+    "elsparkesykkel",
+    "gjenkjenning",
+    "anti-tyveri",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "nb_NO",
+    title: "S-TAG | Innebygd sikring for det du eier",
+    description:
+      "Innebygd fra fabrikken av produsenten. Registrer, spor og overfør eierskapet digitalt – helt gratis.",
+    siteName: "S-TAG",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "S-TAG | Innebygd sikring for det du eier",
+    description:
+      "Innebygd fra fabrikken. Registrer, spor og overfør eierskapet digitalt.",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

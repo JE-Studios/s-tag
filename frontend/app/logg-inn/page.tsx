@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useAuth } from "../lib/auth-context";
+import OAuthButtons from "../components/OAuthButtons";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -74,6 +75,9 @@ export default function LoginPage() {
               {loading ? "Logger inn..." : "Logg inn"}
             </button>
           </form>
+          <div className="mt-6">
+            <OAuthButtons mode="login" />
+          </div>
           <p className="mt-6 text-center text-sm text-slate-500">
             Har du ikke konto?{" "}
             <Link href="/registrer" className="text-[#0f2a5c] font-bold hover:underline">

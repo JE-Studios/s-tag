@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import Link from "next/link";
 import TopBar from "../components/TopBar";
 import { items as itemsApi, Item } from "../lib/api";
@@ -27,18 +27,22 @@ const FILTER_LABEL: Record<FilterKey, string> = {
   all: "Alle",
   secured: "Sikret",
   missing: "Savnet",
-  paired: "Med chip",
-  unpaired: "Uten chip",
+  paired: "Aktiv chip",
+  unpaired: "Venter på signal",
 };
 
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.12 } },
 };
 
-const itemAnim = {
+const itemAnim: Variants = {
   hidden: { opacity: 0, x: -20 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const },
+  },
 };
 
 export default function KartotekPage() {

@@ -8,6 +8,12 @@ type AuthContextValue = {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  loginWithOAuth: (
+    provider: "google" | "apple",
+    idToken: string,
+    name?: string,
+    acceptTerms?: boolean
+  ) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -15,7 +21,15 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const PUBLIC_ROUTES = ["/", "/logg-inn", "/registrer", "/om", "/personvern", "/vilkar"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/logg-inn",
+  "/registrer",
+  "/om",
+  "/personvern",
+  "/vilkar",
+  "/kontakt",
+];
 const PUBLIC_PREFIXES = ["/funnet/"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -71,6 +85,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace("/hjem");
   };
 
+  const loginWithOAuth = async (
+    provider: "google" | "apple",
+    idToken: string,
+    name?: string,
+    acceptTerms = false
+  ) => {
+    const { token, user } = await auth.oauth(provider, idToken, name, acceptTerms);
+    setToken(token);
+    setUser(user);
+    router.replace("/hjem");
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -78,7 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, loginWithOAuth, logout, refreshUser, setUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -4,10 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import TopBar from "../../components/TopBar";
-import { items as itemsApi, chip, ItemEvent, Item } from "../../lib/api";
+import { items as itemsApi, ItemEvent, Item, API_BASE } from "../../lib/api";
 import { useToast } from "../../components/Toast";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const MapView = dynamic(() => import("../../sporing/MapView"), { ssr: false });
 
@@ -263,7 +261,7 @@ function ItemDetailPage() {
           )}
         </div>
 
-        {/* Chip pairing */}
+        {/* S-TAG chip (innstøpt av produsent) */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -272,18 +270,18 @@ function ItemDetailPage() {
                   className="material-symbols-outlined text-[#0f2a5c]"
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
-                  nfc
+                  memory
                 </span>
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  S-TAG chip
+                  Innstøpt S-TAG
                 </p>
                 <p className="text-slate-900 font-bold text-sm">
-                  {item.chipStatus === "unpaired" && "Ikke paret"}
-                  {item.chipStatus === "paired" && "Paret · venter på signal"}
-                  {item.chipStatus === "active" && "Aktiv · live"}
+                  {item.chipStatus === "active" && "Aktiv · live signal"}
+                  {item.chipStatus === "paired" && "Registrert · venter på signal"}
                   {item.chipStatus === "lost" && "Mistet signal"}
+                  {item.chipStatus === "unpaired" && "Registrert"}
                 </p>
               </div>
             </div>
@@ -291,49 +289,24 @@ function ItemDetailPage() {
               className={`w-2 h-2 rounded-full ${
                 item.chipStatus === "active"
                   ? "bg-emerald-500 animate-pulse"
-                  : item.chipStatus === "paired"
-                  ? "bg-amber-500"
-                  : "bg-slate-300"
+                  : item.chipStatus === "lost"
+                  ? "bg-red-500"
+                  : "bg-amber-500"
               }`}
             />
           </div>
           {item.chipUid && (
-            <p className="text-xs text-slate-500 font-mono mt-2 mb-3 break-all">UID: {item.chipUid}</p>
+            <div className="pt-3 border-t border-slate-100">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                S-TAG-kode
+              </p>
+              <p className="text-xs text-slate-700 font-mono break-all">{item.chipUid}</p>
+            </div>
           )}
-          {item.chipStatus === "unpaired" ? (
-            <button
-              onClick={async () => {
-                const mockUid = "CHIP-" + Math.random().toString(36).slice(2, 10).toUpperCase();
-                if (!confirm(`Simulerer chip-skann.\nUID: ${mockUid}\n\nPare med ${item.name}?`)) return;
-                try {
-                  const updated = await chip.pair(item.id, mockUid);
-                  setItem(updated);
-                  toast.success("Chip paret");
-                } catch (err: any) {
-                  toast.error(err.message || "Kunne ikke pare");
-                }
-              }}
-              className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition"
-            >
-              Par ny chip
-            </button>
-          ) : (
-            <button
-              onClick={async () => {
-                if (!confirm("Fjerne chip-paring?")) return;
-                try {
-                  const updated = await chip.unpair(item.id);
-                  setItem(updated);
-                  toast.info("Paring fjernet");
-                } catch (err: any) {
-                  toast.error(err.message || "Kunne ikke fjerne paring");
-                }
-              }}
-              className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
-            >
-              Fjern paring
-            </button>
-          )}
+          <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
+            S-TAG-chipen er støpt inn i produktet av produsenten og kan ikke fjernes eller byttes.
+            Ved eierskifte overføres registreringen — chipen blir med gjenstanden.
+          </p>
         </div>
 
         {/* Aktivitetslogg */}

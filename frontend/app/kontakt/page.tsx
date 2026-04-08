@@ -1,537 +1,304 @@
 "use client";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import TopBar from "../components/TopBar";
 import { useAuth } from "../lib/auth-context";
-import { auth as authApi, User } from "../lib/api";
+import { feedback as feedbackApi } from "../lib/api";
 import { useToast } from "../components/Toast";
-import { hasGeoConsent, setGeoConsent } from "../lib/use-geolocation";
 
-type SectionId = "profile" | "address" | "insurance" | "notifications" | "privacy" | "security" | "data";
+type Kind = "bug" | "feature" | "question" | "other";
 
-const SECTIONS: { id: SectionId; label: string; icon: string }[] = [
-  { id: "profile", label: "Profil", icon: "person" },
-  { id: "address", label: "Adresse", icon: "home" },
-  { id: "insurance", label: "Forsikring", icon: "shield" },
-  { id: "notifications", label: "Varsler", icon: "notifications" },
-  { id: "privacy", label: "Personvern", icon: "lock" },
-  { id: "security", label: "Sikkerhet", icon: "key" },
-  { id: "data", label: "Mine data", icon: "folder_managed" },
+const KIND_OPTIONS: { id: Kind; label: string; icon: string }[] = [
+  { id: "question", label: "Spørsmål", icon: "help" },
+  { id: "bug", label: "Feil", icon: "bug_report" },
+  { id: "feature", label: "Forslag", icon: "lightbulb" },
+  { id: "other", label: "Annet", icon: "chat" },
 ];
 
-export default function InnstillingerPage() {
-  const { user, logout, refreshUser, setUser } = useAuth();
+export default function KontaktPage() {
+  const { user } = useAuth();
   const toast = useToast();
-  const [open, setOpen] = useState<SectionId | null>("profile");
 
-  if (!user) {
-    return (
-      <>
-        <TopBar showBack title="Innstillinger" />
-        <main className="pt-28 pb-40 px-6 max-w-2xl mx-auto text-center">
-          <p className="text-slate-500">Laster …</p>
-        </main>
-      </>
-    );
+  const [kind, setKind] = useState<Kind>("question");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!message.trim()) {
+      toast.error("Meldingen kan ikke være tom");
+      return;
+    }
+    if (!user && !email.trim()) {
+      toast.error("Fyll inn e-post så vi kan svare deg");
+      return;
+    }
+    setSending(true);
+    try {
+      await feedbackApi.send({
+        kind,
+        subject: subject.trim() || null,
+        message: message.trim(),
+        name: user ? null : name.trim() || null,
+        email: user ? null : email.trim().toLowerCase() || null,
+        path: "/kontakt",
+      });
+      setSent(true);
+      setMessage("");
+      setSubject("");
+      toast.success("Takk! Vi svarer så raskt vi kan.");
+    } catch (err: any) {
+      toast.error(err.message || "Kunne ikke sende meldingen");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
     <>
-      <TopBar showBack title="Innstillinger" />
+      <TopBar showBack title="Kontakt" />
       <main className="pt-28 pb-40 px-6 max-w-2xl mx-auto">
-        {/* Profil-header */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm"
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0f2a5c] text-white font-black text-2xl flex items-center justify-center flex-shrink-0">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="font-black text-xl text-slate-900 truncate">{user.name}</h2>
-              <p className="text-sm text-slate-500 truncate">{user.email}</p>
-              <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
-                {user.plan === "free" ? "Gratis" : "Premium"}
-              </span>
-            </div>
-          </div>
-        </motion.section>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+            Vi er her for å hjelpe
+          </h1>
+          <p className="text-slate-500 mb-10 leading-relaxed">
+            Har du spørsmål om S-TAG, trenger hjelp med konto eller sporing, eller vil
+            du gi oss tilbakemelding? Send oss en melding — vi leser alt og svarer
+            vanligvis innen én virkedag.
+          </p>
 
-        {/* Seksjoner */}
-        <div className="space-y-3">
-          {SECTIONS.map((s) => {
-            const isOpen = open === s.id;
-            return (
-              <div key={s.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                <button
-                  onClick={() => setOpen(isOpen ? null : s.id)}
-                  className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-[#0f2a5c]">{s.icon}</span>
-                  </div>
-                  <span className="flex-1 text-left font-bold text-slate-900">{s.label}</span>
-                  <span
-                    className={`material-symbols-outlined text-slate-400 transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  >
-                    expand_more
+          {/* Direkte kontakt */}
+          <section className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm mb-8">
+            <h2 className="font-bold text-slate-900 mb-4">Direkte kontakt</h2>
+            <div className="space-y-3">
+              <ContactRow
+                icon="mail"
+                label="E-post"
+                value="marianne@s-tag.no"
+                href="mailto:marianne@s-tag.no"
+              />
+              <ContactRow
+                icon="schedule"
+                label="Svartid"
+                value="Vanligvis innen én virkedag · man–fre 09–16"
+              />
+              <ContactRow
+                icon="public"
+                label="Språk"
+                value="Norsk · Engelsk"
+              />
+            </div>
+          </section>
+
+          {/* Kontaktskjema */}
+          <section className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm mb-8">
+            <h2 className="font-bold text-slate-900 mb-1">Send oss en melding</h2>
+            <p className="text-xs text-slate-500 mb-5">
+              {user
+                ? `Innlogget som ${user.email} — svar sendes til denne adressen.`
+                : "Vi trenger en e-post for å kunne svare deg."}
+            </p>
+
+            {sent ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-4">
+                  <span className="material-symbols-outlined text-emerald-600 text-3xl">
+                    check_circle
                   </span>
+                </div>
+                <p className="font-bold text-slate-900 mb-1">Takk for meldingen!</p>
+                <p className="text-sm text-slate-500 mb-5">
+                  Vi har mottatt den og svarer deg så raskt vi kan.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSent(false)}
+                  className="text-sm font-bold text-[#0f2a5c] hover:underline"
+                >
+                  Send en ny melding
                 </button>
-                {isOpen && (
-                  <div className="px-4 pb-5 pt-1 border-t border-slate-100">
-                    {s.id === "profile" && (
-                      <ProfileSection user={user} setUser={setUser} refreshUser={refreshUser} toast={toast} />
-                    )}
-                    {s.id === "address" && (
-                      <AddressSection user={user} setUser={setUser} toast={toast} />
-                    )}
-                    {s.id === "insurance" && (
-                      <InsuranceSection user={user} setUser={setUser} toast={toast} />
-                    )}
-                    {s.id === "notifications" && (
-                      <NotificationsSection user={user} setUser={setUser} toast={toast} />
-                    )}
-                    {s.id === "privacy" && (
-                      <PrivacySection user={user} setUser={setUser} toast={toast} />
-                    )}
-                    {s.id === "security" && <SecuritySection toast={toast} />}
-                    {s.id === "data" && <DataSection toast={toast} logout={logout} />}
+              </div>
+            ) : (
+              <form onSubmit={submit} className="space-y-5">
+                {/* Type */}
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                    Hva gjelder det?
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {KIND_OPTIONS.map((k) => (
+                      <button
+                        key={k.id}
+                        type="button"
+                        onClick={() => setKind(k.id)}
+                        className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-bold transition ${
+                          kind === k.id
+                            ? "border-[#0f2a5c] bg-[#0f2a5c]/5 text-[#0f2a5c]"
+                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-base">{k.icon}</span>
+                        {k.label}
+                      </button>
+                    ))}
                   </div>
+                </div>
+
+                {!user && (
+                  <>
+                    <Field label="Ditt navn (valgfritt)">
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Ola Nordmann"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                      />
+                    </Field>
+                    <Field label="E-post">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="din@epost.no"
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                      />
+                    </Field>
+                  </>
                 )}
-              </div>
-            );
-          })}
-        </div>
 
-        {/* Politiet / nødlenker */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-10"
-        >
-          <h2 className="font-bold text-lg text-slate-900 mb-3">Har du opplevd et tap?</h2>
-          <a
-            href="https://www.politiet.no"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 hover:bg-white hover:shadow-sm transition"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0f2a5c]/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#0f2a5c]">policy</span>
-              </div>
-              <div>
-                <p className="font-bold text-slate-900">Anmeld til politiet</p>
-                <p className="text-xs text-slate-500">Digitalt anmeldelsesskjema på politiet.no</p>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-slate-400">open_in_new</span>
-          </a>
-        </motion.section>
+                <Field label="Emne (valgfritt)">
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="Kort oppsummering"
+                    maxLength={200}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  />
+                </Field>
 
-        {/* Logg ut */}
-        <button
-          onClick={logout}
-          className="mt-8 w-full py-3.5 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
-        >
-          Logg ut
-        </button>
+                <Field label="Melding">
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Fortell oss hva du lurer på …"
+                    rows={6}
+                    maxLength={4000}
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition resize-none"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-400 text-right">
+                    {message.length} / 4000
+                  </p>
+                </Field>
 
-        {/* Footer-lenker */}
-        <div className="mt-6 flex items-center justify-center gap-4 text-xs text-slate-500">
-          <Link href="/personvern" className="hover:text-slate-900">Personvern</Link>
-          <span>·</span>
-          <Link href="/vilkar" className="hover:text-slate-900">Vilkår</Link>
-        </div>
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="w-full py-3.5 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60"
+                >
+                  {sending ? "Sender …" : "Send melding"}
+                </button>
+              </form>
+            )}
+          </section>
+
+          {/* Nødhjelp / politiet */}
+          <section className="mb-8">
+            <h2 className="font-bold text-slate-900 mb-3">Har du mistet noe?</h2>
+            <a
+              href="https://www.politiet.no"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 hover:bg-white hover:shadow-sm transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#0f2a5c]/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[#0f2a5c]">policy</span>
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Anmeld til politiet</p>
+                  <p className="text-xs text-slate-500">Digitalt anmeldelsesskjema på politiet.no</p>
+                </div>
+              </div>
+              <span className="material-symbols-outlined text-slate-400">open_in_new</span>
+            </a>
+          </section>
+
+          {/* Lenker */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
+            <Link href="/personvern" className="hover:text-slate-900">
+              Personvern
+            </Link>
+            <span>·</span>
+            <Link href="/vilkar" className="hover:text-slate-900">
+              Vilkår
+            </Link>
+            <span>·</span>
+            <Link href="/" className="hover:text-slate-900">
+              Forsiden
+            </Link>
+          </div>
+        </motion.div>
       </main>
     </>
   );
 }
 
-// ----------------------------------------------------------------------------
-// Seksjoner
-// ----------------------------------------------------------------------------
-
-type ToastApi = ReturnType<typeof useToast>;
-type UpdateUser = (u: User) => void;
-
-async function save(patch: Partial<User>, toast: ToastApi, setUser: UpdateUser) {
-  try {
-    const { user: updated } = await authApi.updateProfile(patch);
-    setUser(updated);
-    toast.success("Lagret");
-  } catch (err: any) {
-    toast.error(err.message || "Kunne ikke lagre");
-  }
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
         {label}
       </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-      />
+      {children}
     </label>
   );
 }
 
-function Toggle({
+function ContactRow({
+  icon,
   label,
-  description,
-  checked,
-  onChange,
+  value,
+  href,
 }: {
+  icon: string;
   label: string;
-  description?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
+  value: string;
+  href?: string;
 }) {
-  return (
-    <label className="flex items-start gap-4 py-3 cursor-pointer">
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-slate-900 text-sm">{label}</p>
-        {description && <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{description}</p>}
+  const content = (
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+        <span className="material-symbols-outlined text-[#0f2a5c]">{icon}</span>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex w-11 h-6 rounded-full transition flex-shrink-0 ${
-          checked ? "bg-[#0f2a5c]" : "bg-slate-300"
-        }`}
-      >
-        <span
-          className={`inline-block w-5 h-5 bg-white rounded-full shadow transform transition ${
-            checked ? "translate-x-5" : "translate-x-0.5"
-          } translate-y-0.5`}
-        />
-      </button>
-    </label>
-  );
-}
-
-function ProfileSection({
-  user,
-  setUser,
-  refreshUser,
-  toast,
-}: {
-  user: User;
-  setUser: UpdateUser;
-  refreshUser: () => Promise<void>;
-  toast: ToastApi;
-}) {
-  const [name, setName] = useState(user.name || "");
-  const [phone, setPhone] = useState(user.phone || "");
-
-  return (
-    <div className="space-y-4 pt-3">
-      <Field label="Fullt navn" value={name} onChange={setName} placeholder="Fornavn Etternavn" />
-      <Field label="Telefon" value={phone} onChange={setPhone} type="tel" placeholder="+47 …" />
-      <p className="text-xs text-slate-400">
-        E-post: <span className="font-mono">{user.email}</span> (kan ikke endres)
-      </p>
-      <button
-        onClick={async () => {
-          if (!name.trim()) {
-            toast.error("Navn kan ikke være tomt");
-            return;
-          }
-          await save({ name: name.trim(), phone: phone.trim() || null }, toast, setUser);
-          refreshUser();
-        }}
-        className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1e40af] transition"
-      >
-        Lagre profil
-      </button>
-    </div>
-  );
-}
-
-function AddressSection({ user, setUser, toast }: { user: User; setUser: UpdateUser; toast: ToastApi }) {
-  const [address, setAddress] = useState(user.address || "");
-  const [postalCode, setPostalCode] = useState(user.postalCode || "");
-  const [city, setCity] = useState(user.city || "");
-
-  return (
-    <div className="space-y-4 pt-3">
-      <Field label="Gateadresse" value={address} onChange={setAddress} placeholder="Storgata 1" />
-      <div className="grid grid-cols-[1fr_2fr] gap-3">
-        <Field label="Postnr" value={postalCode} onChange={setPostalCode} placeholder="0155" />
-        <Field label="Poststed" value={city} onChange={setCity} placeholder="Oslo" />
-      </div>
-      <button
-        onClick={() =>
-          save(
-            {
-              address: address.trim() || null,
-              postalCode: postalCode.trim() || null,
-              city: city.trim() || null,
-            },
-            toast,
-            setUser
-          )
-        }
-        className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1e40af] transition"
-      >
-        Lagre adresse
-      </button>
-    </div>
-  );
-}
-
-function InsuranceSection({ user, setUser, toast }: { user: User; setUser: UpdateUser; toast: ToastApi }) {
-  const [company, setCompany] = useState(user.insuranceCompany || "");
-  const [policy, setPolicy] = useState(user.insurancePolicy || "");
-
-  return (
-    <div className="space-y-4 pt-3">
-      <p className="text-xs text-slate-500 leading-relaxed">
-        Lagre forsikringsinformasjonen din for rask tilgang ved tap eller skade. Informasjonen er privat og
-        vises kun for deg.
-      </p>
-      <Field
-        label="Forsikringsselskap"
-        value={company}
-        onChange={setCompany}
-        placeholder="Navn på ditt selskap"
-      />
-      <Field label="Polisenummer" value={policy} onChange={setPolicy} placeholder="Polise-ID" />
-      <button
-        onClick={() =>
-          save(
-            {
-              insuranceCompany: company.trim() || null,
-              insurancePolicy: policy.trim() || null,
-            },
-            toast,
-            setUser
-          )
-        }
-        className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1e40af] transition"
-      >
-        Lagre forsikring
-      </button>
-    </div>
-  );
-}
-
-function NotificationsSection({
-  user,
-  setUser,
-  toast,
-}: {
-  user: User;
-  setUser: UpdateUser;
-  toast: ToastApi;
-}) {
-  return (
-    <div className="divide-y divide-slate-100">
-      <Toggle
-        label="E-post varsler"
-        description="Få varsler på e-post når noe skjer med gjenstandene dine."
-        checked={user.notifyEmail !== false}
-        onChange={(v) => save({ notifyEmail: v }, toast, setUser)}
-      />
-      <Toggle
-        label="Push-varsler"
-        description="Umiddelbare varsler i appen."
-        checked={user.notifyPush !== false}
-        onChange={(v) => save({ notifyPush: v }, toast, setUser)}
-      />
-      <Toggle
-        label="Markedsføring"
-        description="Nyheter om S-TAG og tilbud. Helt frivillig."
-        checked={!!user.notifyMarketing}
-        onChange={(v) => save({ notifyMarketing: v }, toast, setUser)}
-      />
-    </div>
-  );
-}
-
-function PrivacySection({ user, setUser, toast }: { user: User; setUser: UpdateUser; toast: ToastApi }) {
-  const [geoConsent, setGeoConsentState] = useState(() =>
-    typeof window !== "undefined" ? hasGeoConsent() : false
-  );
-
-  const toggleGeo = (v: boolean) => {
-    if (v) {
-      if (typeof navigator !== "undefined" && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          () => {
-            setGeoConsent(true);
-            setGeoConsentState(true);
-            save({ consentLocation: true }, toast, setUser);
-          },
-          (err) => {
-            toast.error(err.message || "Posisjon ble avslått");
-          }
-        );
-      }
-    } else {
-      setGeoConsent(false);
-      setGeoConsentState(false);
-      save({ consentLocation: false }, toast, setUser);
-    }
-  };
-
-  return (
-    <div className="divide-y divide-slate-100">
-      <Toggle
-        label="Personvern og vilkår"
-        description={
-          user.consentPrivacy
-            ? "Du har godtatt vår personvernerklæring."
-            : "Godta for å lagre og bruke dine data."
-        }
-        checked={!!user.consentPrivacy}
-        onChange={(v) =>
-          save({ consentPrivacy: v, consentVersion: "2026-04" }, toast, setUser)
-        }
-      />
-      <Toggle
-        label="Dele posisjon"
-        description="Tillat appen å hente din posisjon for nøyaktig sporing og funnet-rapporter."
-        checked={geoConsent || !!user.consentLocation}
-        onChange={toggleGeo}
-      />
-      <div className="py-3">
-        <Link
-          href="/personvern"
-          className="flex items-center justify-between text-sm font-bold text-[#0f2a5c] hover:underline"
-        >
-          Les personvernerklæringen
-          <span className="material-symbols-outlined">arrow_forward</span>
-        </Link>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          {label}
+        </p>
+        <p className={`text-sm ${href ? "text-[#0f2a5c] font-bold" : "text-slate-700"} truncate`}>
+          {value}
+        </p>
       </div>
     </div>
   );
-}
-
-function SecuritySection({ toast }: { toast: ToastApi }) {
-  const [oldPassword, setOld] = useState("");
-  const [newPassword, setNew] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const change = async () => {
-    if (newPassword.length < 8) {
-      toast.error("Nytt passord må være minst 8 tegn");
-      return;
-    }
-    if (newPassword !== confirm) {
-      toast.error("Passordene stemmer ikke overens");
-      return;
-    }
-    setLoading(true);
-    try {
-      await authApi.changePassword(oldPassword, newPassword);
-      toast.success("Passord oppdatert");
-      setOld("");
-      setNew("");
-      setConfirm("");
-    } catch (err: any) {
-      toast.error(err.message || "Kunne ikke endre passord");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-4 pt-3">
-      <Field label="Gammelt passord" type="password" value={oldPassword} onChange={setOld} />
-      <Field label="Nytt passord" type="password" value={newPassword} onChange={setNew} />
-      <Field label="Bekreft nytt passord" type="password" value={confirm} onChange={setConfirm} />
-      <button
-        onClick={change}
-        disabled={loading}
-        className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1e40af] transition disabled:opacity-50"
-      >
-        {loading ? "Endrer …" : "Endre passord"}
-      </button>
-    </div>
-  );
-}
-
-function DataSection({ toast, logout }: { toast: ToastApi; logout: () => void }) {
-  const [deleting, setDeleting] = useState(false);
-
-  const exportData = async () => {
-    try {
-      const blob = await authApi.exportData();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `s-tag-eksport-${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Dine data er eksportert");
-    } catch (err: any) {
-      toast.error(err.message || "Eksport feilet");
-    }
-  };
-
-  const deleteAccount = async () => {
-    if (!confirm("Er du helt sikker? Kontoen og alle gjenstandene dine vil slettes permanent.")) return;
-    if (!confirm("Siste sjanse. Denne handlingen kan IKKE angres. Fortsette?")) return;
-    setDeleting(true);
-    try {
-      await authApi.deleteAccount();
-      toast.success("Kontoen er slettet");
-      logout();
-    } catch (err: any) {
-      toast.error(err.message || "Kunne ikke slette");
-      setDeleting(false);
-    }
-  };
-
-  return (
-    <div className="space-y-3 pt-3">
-      <p className="text-xs text-slate-500 leading-relaxed">
-        I henhold til GDPR har du rett til innsyn, dataportabilitet og sletting av alle dine data.
-      </p>
-      <button
-        onClick={exportData}
-        className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
-      >
-        <span className="material-symbols-outlined text-xl">download</span>
-        Last ned alle mine data
-      </button>
-      <button
-        onClick={deleteAccount}
-        disabled={deleting}
-        className="w-full py-3 rounded-xl border border-red-200 bg-red-50 text-red-700 font-bold hover:bg-red-100 transition flex items-center justify-center gap-2 disabled:opacity-50"
-      >
-        <span className="material-symbols-outlined text-xl">delete_forever</span>
-        {deleting ? "Sletter …" : "Slett konto permanent"}
-      </button>
-    </div>
+  return href ? (
+    <a href={href} className="block hover:bg-slate-50 -mx-2 px-2 py-1 rounded-lg transition">
+      {content}
+    </a>
+  ) : (
+    <div className="py-1">{content}</div>
   );
 }

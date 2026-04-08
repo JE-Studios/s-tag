@@ -6,7 +6,7 @@ const isStatic = process.env.STAG_STATIC_EXPORT === "1";
 const nextConfig: NextConfig = {
   // Skip type errors during build — framer-motion v12 easing arrays are typed
   // too strictly for our cubic-bezier literals.
-  typescript: { ignoreBuildErrors: true },
+  typescript: { ignoreBuildErrors: false },
   // Pin workspace root to this folder so Next doesn't pick up a stray
   // package-lock.json in the user's home directory.
   turbopack: {

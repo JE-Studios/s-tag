@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import TopBar from "../../components/TopBar";
-import { items as itemsApi } from "../../lib/api";
+import { items as itemsApi, API_BASE } from "../../lib/api";
 import { useToast } from "../../components/Toast";
 import { useGeolocation, hasGeoConsent } from "../../lib/use-geolocation";
 
@@ -21,9 +21,13 @@ const CATEGORIES = [
 export default function NyGjenstandPage() {
   const router = useRouter();
   const toast = useToast();
-  const geo = useGeolocation(false);
+  // Auto-henter posisjon stille i bakgrunnen dersom brukeren allerede
+  // har gitt samtykke ved registrering. Ingen prompt eller knapp på denne siden.
+  const geo = useGeolocation(true);
   const [loading, setLoading] = useState(false);
 
+  const [stagCode, setStagCode] = useState("");
+  const [codeStatus, setCodeStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [name, setName] = useState("");
   const [category, setCategory] = useState("electronics");
   const [description, setDescription] = useState("");
@@ -35,10 +39,51 @@ export default function NyGjenstandPage() {
   const [purchasedAt, setPurchasedAt] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
 
+  // Live sjekk av S-TAG-kode mot backend (debounced)
+  useEffect(() => {
+    const trimmed = stagCode.trim().toUpperCase();
+    if (!trimmed) {
+      setCodeStatus("idle");
+      return;
+    }
+    if (trimmed.length < 6) {
+      setCodeStatus("invalid");
+      return;
+    }
+    setCodeStatus("checking");
+    const t = setTimeout(async () => {
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("stag_token") : null;
+        const r = await fetch(
+          `${API_BASE}/api/items/code-available?code=${encodeURIComponent(trimmed)}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        );
+        const j = await r.json();
+        setCodeStatus(j.available ? "available" : "taken");
+      } catch {
+        setCodeStatus("idle");
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [stagCode]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error("Navn er påkrevd");
+      return;
+    }
+    const code = stagCode.trim().toUpperCase();
+    if (!code) {
+      toast.error("S-TAG-kode er påkrevd");
+      return;
+    }
+    if (code.length < 6) {
+      toast.error("S-TAG-koden virker ugyldig");
+      return;
+    }
+    if (codeStatus === "taken") {
+      toast.error("Denne S-TAG-koden er allerede registrert");
       return;
     }
     setLoading(true);
@@ -46,6 +91,7 @@ export default function NyGjenstandPage() {
       const payload: any = {
         name: name.trim(),
         category,
+        chipUid: code,
         description: description.trim() || undefined,
         brand: brand.trim() || undefined,
         model: model.trim() || undefined,
@@ -82,11 +128,64 @@ export default function NyGjenstandPage() {
             Registrer eiendel
           </h1>
           <p className="text-slate-500 text-sm">
-            Jo mer info du fyller ut, jo enklere blir det å gjenfinne hvis noe forsvinner.
+            S-TAG-chip-en er allerede støpt inn i produktet av produsenten. Legg inn S-TAG-koden
+            som fulgte med — så knytter vi gjenstanden til din konto.
           </p>
         </motion.div>
 
         <form onSubmit={submit} className="space-y-6">
+          <Section title="S-TAG-kode" required>
+            <p className="text-xs text-slate-500 -mt-1 leading-relaxed">
+              Finner du på produktemballasjen, i produsentens app eller ved å skanne S-TAG-merket.
+              Eksempel: <span className="font-mono">ST-4F3A-92CB</span>
+            </p>
+            <div>
+              <label className="block">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+                  Kode
+                </span>
+                <input
+                  type="text"
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={stagCode}
+                  onChange={(e) => setStagCode(e.target.value.toUpperCase())}
+                  placeholder="ST-XXXX-XXXX"
+                  className={`w-full font-mono tracking-wider bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition ${
+                    codeStatus === "available"
+                      ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                      : codeStatus === "taken" || codeStatus === "invalid"
+                      ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
+                      : "border-slate-200 focus:border-[#0f2a5c] focus:ring-[#0f2a5c]/10"
+                  }`}
+                  required
+                />
+              </label>
+              <div className="mt-2 text-xs h-5">
+                {codeStatus === "checking" && (
+                  <span className="text-slate-500">Sjekker kode …</span>
+                )}
+                {codeStatus === "available" && (
+                  <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    Koden er ledig — klar til registrering
+                  </span>
+                )}
+                {codeStatus === "taken" && (
+                  <span className="text-red-600 font-semibold">
+                    Denne koden er allerede registrert
+                  </span>
+                )}
+                {codeStatus === "invalid" && (
+                  <span className="text-red-600 font-semibold">
+                    Koden virker for kort
+                  </span>
+                )}
+              </div>
+            </div>
+          </Section>
+
           <Section title="Grunnleggende" required>
             <Input label="Navn" value={name} onChange={setName} placeholder="F.eks. MacBook Pro 14&quot;" required />
             <div>
@@ -156,32 +255,10 @@ export default function NyGjenstandPage() {
             />
           </Section>
 
-          <Section title="Startposisjon">
-            <p className="text-xs text-slate-500 mb-3">
-              Bruk din nåværende posisjon som startpunkt for sporing. Krever samtykke til posisjon.
-            </p>
-            {geo.lat != null && geo.lng != null ? (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800">
-                <span className="font-bold">Posisjon klar:</span> {geo.lat.toFixed(4)}, {geo.lng.toFixed(4)}
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => geo.request()}
-                disabled={geo.loading}
-                className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined">my_location</span>
-                {geo.loading ? "Henter posisjon …" : "Bruk min posisjon"}
-              </button>
-            )}
-            {geo.error && <p className="text-xs text-red-600 mt-2">{geo.error}</p>}
-          </Section>
-
           <div className="sticky bottom-24 pt-4">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || codeStatus === "taken" || codeStatus === "invalid" || !stagCode.trim()}
               className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1e40af] transition disabled:opacity-50 shadow-xl shadow-[#0f2a5c]/20"
             >
               {loading ? "Registrerer …" : "Registrer gjenstand"}

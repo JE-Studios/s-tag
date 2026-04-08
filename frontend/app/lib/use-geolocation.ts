@@ -11,9 +11,18 @@ export type GeoState = {
 
 const LS_CONSENT = "stag_geo_consent";
 
+export type GeoConsent = "unknown" | "granted" | "denied";
+
+export function getGeoConsent(): GeoConsent {
+  if (typeof window === "undefined") return "unknown";
+  const v = localStorage.getItem(LS_CONSENT);
+  if (v === "granted") return "granted";
+  if (v === "denied") return "denied";
+  return "unknown";
+}
+
 export function hasGeoConsent(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(LS_CONSENT) === "granted";
+  return getGeoConsent() === "granted";
 }
 
 export function setGeoConsent(granted: boolean) {
@@ -37,32 +46,46 @@ export function useGeolocation(autoStart = false): GeoState & {
     error: null,
   });
 
-  const getPosition = useCallback(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setState((s) => ({ ...s, error: "Posisjonstjenester ikke tilgjengelig", loading: false }));
-      return;
-    }
-    setState((s) => ({ ...s, loading: true, error: null }));
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setState({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          loading: false,
-          error: null,
-        });
-      },
-      (err) => {
-        setState((s) => ({ ...s, loading: false, error: err.message }));
-      },
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 }
-    );
-  }, []);
+  const getPosition = useCallback(
+    (markConsent = false) =>
+      new Promise<boolean>((resolve) => {
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+          setState((s) => ({
+            ...s,
+            error: "Posisjonstjenester ikke tilgjengelig",
+            loading: false,
+          }));
+          if (markConsent) setGeoConsent(false);
+          resolve(false);
+          return;
+        }
+        setState((s) => ({ ...s, loading: true, error: null }));
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setState({
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+              loading: false,
+              error: null,
+            });
+            if (markConsent) setGeoConsent(true);
+            resolve(true);
+          },
+          (err) => {
+            setState((s) => ({ ...s, loading: false, error: err.message }));
+            if (markConsent) setGeoConsent(false);
+            resolve(false);
+          },
+          { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 }
+        );
+      }),
+    []
+  );
 
   const request = useCallback(async () => {
-    setGeoConsent(true);
-    getPosition();
+    // Markerer consent basert på faktisk browser-svar (grant/deny).
+    await getPosition(true);
   }, [getPosition]);
 
   const refresh = useCallback(() => {

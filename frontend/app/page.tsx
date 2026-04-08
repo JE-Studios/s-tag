@@ -6,31 +6,53 @@ import { useAuth } from "./lib/auth-context";
 
 const features = [
   {
-    icon: "security",
-    title: "Sikring",
-    desc: "Fest en S-TAG-chip på sykkelen, laptopen eller kameraet. Registrer den i appen — den er nå din, digitalt og juridisk.",
+    icon: "memory",
+    title: "Innebygd fra fabrikken",
+    desc: "Produsenter av sykler, ski, elsparkesykler, verktøy og elektronikk støper S-TAG-chipen inn i produktet under produksjon. Du kan verken miste, bytte eller fjerne den.",
+  },
+  {
+    icon: "qr_code_scanner",
+    title: "Registrering på sekunder",
+    desc: "Når du kjøper produktet får du en unik S-TAG-kode. Skann den eller skriv den inn i appen, så er eierskapet ditt – digitalt og juridisk.",
   },
   {
     icon: "location_on",
     title: "Live sporing",
-    desc: "Når noe forsvinner, ser du det i sanntid på kartet. Chip-en rapporterer posisjon så lenge den har signal.",
+    desc: "Hvis sykkelen eller skiene blir borte ser du siste posisjon i sanntid på kartet. Chipen rapporterer så lenge den har signal mot et S-TAG- eller mobil-gateway.",
   },
   {
     icon: "swap_horiz",
-    title: "Eierskifte",
-    desc: "Selger du noe brukt? Overfør eierskapet digitalt på sekunder. Kjøper får bekreftet at gjenstanden ikke er stjålet.",
+    title: "Eierskifte i appen",
+    desc: "Selger du brukt? Overfør eierskapet digitalt på sekunder. Kjøper får verifisert at produktet ikke er meldt stjålet før han betaler.",
   },
   {
     icon: "verified_user",
     title: "Nasjonalt register",
-    desc: "Alle S-TAG-merkede gjenstander er søkbare. Finner du noe med en S-TAG? Skann og se om den er meldt savnet.",
+    desc: "Alle S-TAG-merkede gjenstander er søkbare. Finner du en etterlatt sykkel med S-TAG? Skann den og varsle eier anonymt via offentlig kode.",
+  },
+  {
+    icon: "handshake",
+    title: "For produsenter",
+    desc: "Vi leverer chip, API og sertifisering til merkevarer som vil gi sine kunder livstids sikring og gjenkjenning rett ut av boksen.",
   },
 ];
 
 const steps = [
-  { n: "01", title: "Bestill S-TAG-chip", desc: "Få en fysisk NFC-chip sendt hjem i posten." },
-  { n: "02", title: "Fest og skann", desc: "Lim chippen på gjenstanden og skann den med mobilen." },
-  { n: "03", title: "Du er sikret", desc: "Gjenstanden er registrert, sporbar og eier-verifisert." },
+  {
+    n: "01",
+    title: "Kjøp et S-TAG-merket produkt",
+    desc: "Utvalgte sykler, ski, elsparkesykler, verktøy og elektronikk leveres med en innstøpt S-TAG-chip fra produsenten.",
+  },
+  {
+    n: "02",
+    title: "Registrer S-TAG-koden i appen",
+    desc: "På kvitteringen, emballasjen eller produktet finner du en unik S-TAG-kode. Legg den inn i appen – du er nå registrert eier.",
+  },
+  {
+    n: "03",
+    title: "Spor, rapporter og overfør",
+    desc: "Se posisjon, marker som mistet hvis noe forsvinner, eller overfør eierskapet til en kjøper når du selger brukt.",
+  },
 ];
 
 export default function LandingPage() {
@@ -47,8 +69,8 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             <a href="#funksjoner" className="hover:text-slate-900 transition">Funksjoner</a>
             <a href="#slik-fungerer-det" className="hover:text-slate-900 transition">Slik fungerer det</a>
-            <a href="#priser" className="hover:text-slate-900 transition">Priser</a>
             <a href="#faq" className="hover:text-slate-900 transition">FAQ</a>
+            <a href="#kontakt" className="hover:text-slate-900 transition">Kontakt</a>
           </nav>
           <div className="flex items-center gap-3">
             {user ? (
@@ -99,25 +121,26 @@ export default function LandingPage() {
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold tracking-widest uppercase mb-6">
-              ● Lansert i Norge
+              ● Gratis for sluttbrukere
             </span>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[0.95] mb-6">
-              Dine eiendeler,
+              Innebygd i produktet.
               <br />
               <span className="bg-gradient-to-r from-[#0f2a5c] to-[#2563eb] bg-clip-text text-transparent">
-                digitalt sikret.
+                Sikret for livet.
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Registrer, spor og overfør eierskap av dine verdier med én chip.
-              Norges nye standard for eierskap og sporing.
+              S-TAG-chipen støpes inn i sykler, ski, elsparkesykler, verktøy og elektronikk
+              av produsenten. Du registrerer den unike koden i appen – og gjenstanden er
+              dokumentert, sporbar og gjenkjennbar for alltid.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href={user ? "/hjem" : "/registrer"}
                 className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#0f2a5c] text-white text-base font-bold hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20 hover:shadow-xl hover:-translate-y-0.5"
               >
-                {user ? "Åpne mitt dashboard" : "Kom i gang gratis"}
+                {user ? "Åpne mitt dashboard" : "Opprett konto"}
               </Link>
               <a
                 href="#slik-fungerer-det"
@@ -127,7 +150,7 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="mt-6 text-xs text-slate-400 tracking-wide">
-              Ingen kredittkort påkrevd · Tilgjengelig på iOS, Android og Windows
+              Tilgjengelig på iOS, Android og web · Helt gratis · Ingen kredittkort
             </p>
           </motion.div>
         </div>
@@ -142,7 +165,7 @@ export default function LandingPage() {
               Alt du trenger for å beskytte det du eier
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -171,8 +194,12 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <span className="text-xs font-bold tracking-widest uppercase text-[#0f2a5c]">Slik fungerer det</span>
             <h2 className="text-4xl md:text-5xl font-black tracking-tight mt-3">
-              Fra boks til beskyttet på 2 minutter
+              Fra kassen til beskyttet på under ett minutt
             </h2>
+            <p className="mt-4 text-slate-600 max-w-xl mx-auto">
+              Chipen er allerede i produktet når du kjøper det. Du trenger ingen skruing,
+              pairing eller hardware – bare S-TAG-koden som følger med.
+            </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step, i) => (
@@ -193,48 +220,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="priser" className="py-24 px-6 bg-slate-50 border-y border-slate-100">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-xs font-bold tracking-widest uppercase text-[#0f2a5c]">Priser</span>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mt-3">
-              Enkelt og rettferdig
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-3xl p-10 border border-slate-200">
-              <h3 className="text-2xl font-black mb-1">Gratis</h3>
-              <p className="text-slate-500 mb-6">For å komme i gang</p>
-              <div className="text-5xl font-black mb-6">0 kr</div>
-              <ul className="space-y-3 text-slate-600 mb-8">
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-600">check</span>Opptil 3 gjenstander</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-600">check</span>Digital eierskap</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-600">check</span>Eierskifte</li>
-              </ul>
-              <Link href="/registrer" className="block w-full py-3 text-center rounded-full border-2 border-slate-200 font-bold hover:bg-slate-50 transition">
-                Kom i gang
-              </Link>
-            </div>
-            <div className="bg-[#0f2a5c] text-white rounded-3xl p-10 shadow-xl relative overflow-hidden">
-              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-widest uppercase">Anbefalt</div>
-              <h3 className="text-2xl font-black mb-1">Premium</h3>
-              <p className="text-white/70 mb-6">For deg med verdier</p>
-              <div className="text-5xl font-black mb-6">49 kr<span className="text-lg font-medium text-white/70">/mnd</span></div>
-              <ul className="space-y-3 text-white/90 mb-8">
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-300">check</span>Ubegrenset antall gjenstander</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-300">check</span>Live chip-sporing</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-300">check</span>Varsler ved bevegelse</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-300">check</span>Prioritert støtte</li>
-              </ul>
-              <Link href="/registrer" className="block w-full py-3 text-center rounded-full bg-white text-[#0f2a5c] font-bold hover:bg-slate-100 transition">
-                Start gratis prøveperiode
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section id="faq" className="py-24 px-6">
         <div className="max-w-3xl mx-auto">
@@ -244,11 +229,38 @@ export default function LandingPage() {
           </div>
           <div className="space-y-4">
             {[
-              { q: "Hva er en S-TAG-chip?", a: "En liten NFC/BLE-chip som festes på gjenstander. Den kan skannes med mobilen og rapporterer posisjon." },
-              { q: "Hva hvis noen stjeler chippen?", a: "Chippen er tamper-resistant og kan ikke paret med en annen eier uten gammel eiers godkjenning." },
-              { q: "Koster chippen ekstra?", a: "Du bestiller fysiske chips fra oss. Førsteeksemplar er gratis ved registrering." },
-              { q: "Er det GDPR-kompatibelt?", a: "Ja. All data lagres i Norge, kryptert. Du eier dine data og kan slette konto når som helst." },
-              { q: "Fungerer det uten nett?", a: "Chippen lagrer siste posisjon. Så snart en gateway eller mobilbruker er innenfor rekkevidde, oppdateres den." },
+              {
+                q: "Hva er en S-TAG-chip?",
+                a: "En liten NFC/BLE-chip som støpes eller integreres inn i produktet under produksjon. Den er usynlig fra utsiden, kan ikke fjernes og lever hele produktets levetid.",
+              },
+              {
+                q: "Hvilke produkter har S-TAG innebygd?",
+                a: "Sykler, elsparkesykler, ski, verktøy, elektronikk og andre verdifulle produkter fra produsenter som samarbeider med S-TAG. Se etter S-TAG-merket på emballasjen når du kjøper.",
+              },
+              {
+                q: "Må jeg pare chipen selv?",
+                a: "Nei. Du trenger bare den unike S-TAG-koden som fulgte med produktet. Du skriver inn koden i appen, så er du registrert eier – ingen Bluetooth-pairing eller hardware-oppsett.",
+              },
+              {
+                q: "Hva skjer hvis jeg selger produktet?",
+                a: "Du overfører eierskapet digitalt i appen. Chipen blir i produktet, men registreringen flyttes til den nye eieren som får full kontroll.",
+              },
+              {
+                q: "Fungerer det uten nett?",
+                a: "Chipen lagrer siste posisjon. Så snart et S-TAG- eller mobil-gateway er innenfor rekkevidde, oppdateres den automatisk.",
+              },
+              {
+                q: "Er det GDPR-kompatibelt?",
+                a: "Ja. All data lagres kryptert innenfor EU/EØS (Amsterdam og Frankfurt). Du eier dine egne data og kan eksportere eller slette kontoen din når som helst fra Innstillinger → Mine data.",
+              },
+              {
+                q: "Hva koster det?",
+                a: "S-TAG er helt gratis for deg som sluttbruker. Ingen abonnement, ingen skjulte gebyrer, ingen betalte versjoner. Chipen følger med produktet fra produsenten – du betaler kun for selve produktet du kjøper.",
+              },
+              {
+                q: "Hvordan kontakter jeg support?",
+                a: "Send oss en melding fra Kontakt-siden, eller skriv direkte til marianne@s-tag.no. Vi svarer vanligvis innen én virkedag.",
+              },
             ].map((item, i) => (
               <details key={i} className="group bg-slate-50 rounded-2xl p-6 border border-slate-200">
                 <summary className="font-bold text-lg cursor-pointer list-none flex items-center justify-between">
@@ -269,14 +281,51 @@ export default function LandingPage() {
             Klar til å sikre det du eier?
           </h2>
           <p className="text-xl text-white/80 mb-10">
-            Opprett en gratis konto på under ett minutt.
+            Opprett en konto på under ett minutt og registrer ditt første S-TAG-merkede produkt.
           </p>
           <Link
             href="/registrer"
             className="inline-block px-10 py-5 rounded-full bg-white text-[#0f2a5c] text-lg font-black hover:bg-slate-100 transition shadow-2xl"
           >
-            Kom i gang gratis
+            Opprett konto
           </Link>
+        </div>
+      </section>
+
+      {/* Kontakt / support */}
+      <section id="kontakt" className="py-20 px-6 bg-slate-50 border-t border-slate-100">
+        <div className="max-w-3xl mx-auto text-center">
+          <span className="text-xs font-bold tracking-widest uppercase text-[#0f2a5c]">Kontakt</span>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight mt-3 mb-4">
+            Spørsmål? Vi er her for å hjelpe.
+          </h2>
+          <p className="text-slate-600 mb-8 max-w-xl mx-auto">
+            Er du sluttbruker som trenger hjelp, produsent som vil integrere S-TAG, eller
+            har du bare et spørsmål? Skriv til oss – vi svarer vanligvis innen én virkedag.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="mailto:marianne@s-tag.no"
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20"
+            >
+              <span
+                className="material-symbols-outlined text-base"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                mail
+              </span>
+              marianne@s-tag.no
+            </a>
+            <Link
+              href="/kontakt"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-slate-200 text-slate-700 font-bold hover:bg-white transition"
+            >
+              Åpne kontaktskjema
+            </Link>
+          </div>
+          <p className="mt-6 text-xs text-slate-400 tracking-wide">
+            Support · Man–fre 09–16 · Norsk og engelsk
+          </p>
         </div>
       </section>
 
@@ -291,6 +340,9 @@ export default function LandingPage() {
             <Link href="/personvern" className="hover:text-slate-900">Personvern</Link>
             <Link href="/vilkar" className="hover:text-slate-900">Vilkår</Link>
             <Link href="/kontakt" className="hover:text-slate-900">Kontakt</Link>
+            <a href="mailto:marianne@s-tag.no" className="hover:text-slate-900">
+              marianne@s-tag.no
+            </a>
           </div>
         </div>
       </footer>

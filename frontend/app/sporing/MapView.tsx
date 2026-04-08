@@ -28,13 +28,25 @@ interface MapViewProps {
   items: Item[];
   selectedId: string | null;
   onSelect?: (id: string) => void;
+  /** Valgfri posisjon å fly kartet til — f.eks. brukerens egen posisjon. [lat, lng, nonce] så samme posisjon kan fly igjen. */
+  flyTo?: { lat: number; lng: number; zoom?: number; nonce?: number } | null;
+  /** Brukerens egen posisjon — vises som en egen blå markør */
+  userPosition?: { lat: number; lng: number } | null;
 }
 
 const statusColor = (status: Item["status"]) =>
   status === "missing" ? "#dc2626" : status === "inactive" ? "#94a3b8" : "#0f2a5c";
 
-// Internal component that flies the map to selected item
-function MapController({ items, selectedId }: { items: Item[]; selectedId: string | null }) {
+// Internal component that flies the map to selected item or a custom target
+function MapController({
+  items,
+  selectedId,
+  flyTo,
+}: {
+  items: Item[];
+  selectedId: string | null;
+  flyTo?: MapViewProps["flyTo"];
+}) {
   const map = useMap();
   const markerRefs = useRef<Map<string, L.CircleMarker>>(new Map());
 
@@ -46,13 +58,21 @@ function MapController({ items, selectedId }: { items: Item[]; selectedId: strin
       duration: 1.4,
       easeLinearity: 0.25,
     });
-    // Open popup once flight finishes
     const t = setTimeout(() => {
       const m = markerRefs.current.get(selectedId);
       if (m) m.openPopup();
     }, 1450);
     return () => clearTimeout(t);
   }, [selectedId, items, map]);
+
+  // Ekstern flyTo (brukerens posisjon osv.) — nonce lar samme koordinat trigge på nytt
+  useEffect(() => {
+    if (!flyTo) return;
+    map.flyTo([flyTo.lat, flyTo.lng], flyTo.zoom ?? 16, {
+      duration: 1.4,
+      easeLinearity: 0.25,
+    });
+  }, [flyTo?.lat, flyTo?.lng, flyTo?.nonce, flyTo?.zoom, map]);
 
   return (
     <>
@@ -93,7 +113,7 @@ function MapController({ items, selectedId }: { items: Item[]; selectedId: strin
   );
 }
 
-export default function MapView({ items, selectedId }: MapViewProps) {
+export default function MapView({ items, selectedId, flyTo, userPosition }: MapViewProps) {
   useEffect(() => {
     setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
   }, []);
@@ -110,7 +130,23 @@ export default function MapView({ items, selectedId }: MapViewProps) {
         attribution='&copy; OpenStreetMap contributors'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
-      <MapController items={items} selectedId={selectedId} />
+      <MapController items={items} selectedId={selectedId} flyTo={flyTo} />
+      {userPosition && (
+        <CircleMarker
+          center={[userPosition.lat, userPosition.lng]}
+          radius={9}
+          pathOptions={{
+            color: "#ffffff",
+            fillColor: "#2563eb",
+            fillOpacity: 1,
+            weight: 3,
+          }}
+        >
+          <Popup>
+            <div className="p-1 text-xs font-bold text-slate-900">Du er her</div>
+          </Popup>
+        </CircleMarker>
+      )}
     </MapContainer>
   );
 }
