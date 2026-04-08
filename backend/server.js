@@ -8,11 +8,27 @@ const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || "s-tag-dev-secret-change-in-production";
 const TOKEN_TTL_DAYS = 30;
 
-// CORS: I prod begrens til frontend-origin(er). Sett CORS_ORIGINS=https://stag.no,https://www.stag.no
-const corsOrigins = (process.env.CORS_ORIGINS || "*").split(",").map((s) => s.trim());
+// CORS: default-liste dekker Vercel + lokal dev + Capacitor. Override via CORS_ORIGINS.
+const DEFAULT_ORIGINS = [
+  "https://s-tag-ten.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "capacitor://localhost",
+  "http://localhost",
+];
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+  : DEFAULT_ORIGINS;
 app.use(
   cors({
-    origin: corsOrigins.includes("*") ? true : corsOrigins,
+    origin: (origin, cb) => {
+      // Ingen origin (mobil-app, curl, health checks) → tillat
+      if (!origin) return cb(null, true);
+      if (corsOrigins.includes("*") || corsOrigins.includes(origin)) return cb(null, true);
+      // Tillat alle *.vercel.app preview-deploys
+      if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return cb(null, true);
+      return cb(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: false,
   })
 );
@@ -117,6 +133,12 @@ app.post("/api/auth/register", h(async (req, res) => {
     createdAt: new Date().toISOString(),
   };
   const saved = await db.createUser(user);
+  await db.createNotification({
+    userId: saved.id,
+    kind: "welcome",
+    title: `Velkommen til S-TAG, ${saved.name.split(" ")[0]}!`,
+    body: "Registrer din første gjenstand og aktiver chip-sporing fra Kartoteket.",
+  }).catch(() => {});
   const token = signToken({ userId: saved.id });
   res.status(201).json({ token, user: publicUser(saved) });
 }));
@@ -135,7 +157,61 @@ app.post("/api/auth/login", h(async (req, res) => {
 app.get("/api/auth/me", requireAuth, h(async (req, res) => {
   const user = await db.findUserById(req.userId);
   if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
+  db.touchUserLastSeen(req.userId).catch(() => {});
   res.json({ user: publicUser(user) });
+}));
+
+// Oppdater profil (navn, adresse, forsikring, varsler, samtykker)
+app.patch("/api/auth/me", requireAuth, h(async (req, res) => {
+  const allowed = [
+    "name", "phone", "address", "postalCode", "city", "avatarUrl",
+    "insuranceCompany", "insurancePolicy",
+    "notifyEmail", "notifyPush", "notifyMarketing",
+    "consentPrivacy", "consentLocation", "consentVersion", "language",
+  ];
+  const patch = {};
+  for (const k of allowed) if (req.body?.[k] !== undefined) patch[k] = req.body[k];
+  if (patch.name !== undefined) patch.name = String(patch.name).trim();
+  const updated = await db.updateUserProfile(req.userId, patch);
+  if (!updated) return res.status(404).json({ error: "Bruker ikke funnet" });
+  res.json({ user: publicUser(updated) });
+}));
+
+// Endre passord
+app.post("/api/auth/password", requireAuth, h(async (req, res) => {
+  const { oldPassword, newPassword } = req.body || {};
+  if (!oldPassword || !newPassword) return res.status(400).json({ error: "Oppgi gammelt og nytt passord" });
+  if (newPassword.length < 8) return res.status(400).json({ error: "Nytt passord må være minst 8 tegn" });
+  const user = await db.findUserById(req.userId);
+  if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
+  if (!verifyPassword(oldPassword, user.passwordHash)) {
+    return res.status(401).json({ error: "Feil gammelt passord" });
+  }
+  await db.updateUserPassword(req.userId, hashPassword(newPassword));
+  res.json({ ok: true });
+}));
+
+// Slett konto (GDPR rett til sletting)
+app.delete("/api/auth/me", requireAuth, h(async (req, res) => {
+  await db.deleteUser(req.userId);
+  res.json({ ok: true });
+}));
+
+// Eksporter alle data (GDPR dataportabilitet)
+app.get("/api/auth/export", requireAuth, h(async (req, res) => {
+  const user = await db.findUserById(req.userId);
+  if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
+  const items = await db.listItemsByOwner(req.userId);
+  const transfers = await db.listTransfersForUser(req.userId, user.email);
+  const notifications = await db.listNotifications(req.userId, 500);
+  res.setHeader("Content-Disposition", `attachment; filename="s-tag-export-${user.id}.json"`);
+  res.json({
+    exportedAt: new Date().toISOString(),
+    user: publicUser(user),
+    items,
+    transfers,
+    notifications,
+  });
 }));
 
 // ============================================================================
@@ -182,10 +258,14 @@ app.get("/api/items/:id", requireAuth, h(async (req, res) => {
 
 app.post("/api/items", requireAuth, h(async (req, res) => {
   const body = req.body || {};
+  if (!body.name || !String(body.name).trim()) {
+    return res.status(400).json({ error: "Navn er påkrevd" });
+  }
+  const publicCode = crypto.randomBytes(4).toString("hex").toUpperCase();
   const newItem = {
     id: crypto.randomUUID(),
     ownerId: req.userId,
-    name: body.name || "Ny gjenstand",
+    name: String(body.name).trim(),
     tagId: body.tagId || `ST-${Math.floor(Math.random() * 9000 + 1000)}-${Math.random().toString(36).slice(2, 4).toUpperCase()}`,
     status: "secured",
     category: body.category || "other",
@@ -198,20 +278,137 @@ app.post("/api/items", requireAuth, h(async (req, res) => {
     lastSeen: "Registrert nettopp",
     battery: null,
     createdAt: new Date().toISOString(),
+    description: body.description || null,
+    serialNumber: body.serialNumber || null,
+    brand: body.brand || null,
+    model: body.model || null,
+    color: body.color || null,
+    valueNok: body.valueNok ?? null,
+    purchasedAt: body.purchasedAt || null,
+    photoUrl: body.photoUrl || null,
+    publicCode,
   };
   const saved = await db.createItem(newItem);
+  await db.createItemEvent({ itemId: saved.id, userId: req.userId, kind: "created", detail: saved.name });
   res.status(201).json(saved);
 }));
 
 app.patch("/api/items/:id", requireAuth, h(async (req, res) => {
   const updated = await db.updateItem(req.params.id, req.userId, req.body || {});
   if (!updated) return res.status(404).json({ error: "Not found" });
+  await db.createItemEvent({ itemId: updated.id, userId: req.userId, kind: "updated", detail: Object.keys(req.body || {}).join(", ") });
   res.json(updated);
 }));
 
 app.delete("/api/items/:id", requireAuth, h(async (req, res) => {
   const ok = await db.deleteItem(req.params.id, req.userId);
   if (!ok) return res.status(404).json({ error: "Not found" });
+  res.json({ ok: true });
+}));
+
+// Marker som mistet / funnet
+app.post("/api/items/:id/lost", requireAuth, h(async (req, res) => {
+  const { message } = req.body || {};
+  const updated = await db.updateItem(req.params.id, req.userId, {
+    status: "missing",
+    lostMessage: message || null,
+  });
+  if (!updated) return res.status(404).json({ error: "Not found" });
+  await db.createItemEvent({ itemId: updated.id, userId: req.userId, kind: "marked_lost", detail: message || null });
+  await db.createNotification({
+    userId: req.userId,
+    kind: "item_lost",
+    title: `${updated.name} er markert som mistet`,
+    body: "Vi varsler deg hvis noen rapporterer funn via offentlig kode.",
+    itemId: updated.id,
+  });
+  res.json(updated);
+}));
+
+app.post("/api/items/:id/found", requireAuth, h(async (req, res) => {
+  const updated = await db.updateItem(req.params.id, req.userId, {
+    status: "secured",
+    lostMessage: null,
+  });
+  if (!updated) return res.status(404).json({ error: "Not found" });
+  await db.createItemEvent({ itemId: updated.id, userId: req.userId, kind: "marked_found", detail: null });
+  res.json(updated);
+}));
+
+app.get("/api/items/:id/events", requireAuth, h(async (req, res) => {
+  const item = await db.getItem(req.params.id, req.userId);
+  if (!item) return res.status(404).json({ error: "Not found" });
+  const events = await db.listItemEvents(req.params.id, 100);
+  res.json(events);
+}));
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+app.get("/api/notifications", requireAuth, h(async (req, res) => {
+  const list = await db.listNotifications(req.userId, 100);
+  res.json(list);
+}));
+
+app.get("/api/notifications/unread-count", requireAuth, h(async (req, res) => {
+  const count = await db.countUnreadNotifications(req.userId);
+  res.json({ count });
+}));
+
+app.post("/api/notifications/read-all", requireAuth, h(async (req, res) => {
+  await db.markAllNotificationsRead(req.userId);
+  res.json({ ok: true });
+}));
+
+// ============================================================================
+// STATS
+// ============================================================================
+
+app.get("/api/stats", requireAuth, h(async (req, res) => {
+  const stats = await db.getUserStats(req.userId);
+  res.json(stats);
+}));
+
+// ============================================================================
+// PUBLIC FOUND FLOW (no auth — accessed via QR/offentlig kode)
+// ============================================================================
+
+app.get("/api/found/:code", h(async (req, res) => {
+  const item = await db.findItemByPublicCode(req.params.code);
+  if (!item) return res.status(404).json({ error: "Ukjent kode" });
+  // Begrenset visning — ikke lekke eierens data
+  res.json({
+    id: item.id,
+    name: item.name,
+    category: item.category,
+    brand: item.brand,
+    color: item.color,
+    status: item.status,
+    lostMessage: item.lostMessage,
+    photoUrl: item.photoUrl,
+  });
+}));
+
+app.post("/api/found/:code/report", h(async (req, res) => {
+  const item = await db.findItemByPublicCode(req.params.code);
+  if (!item) return res.status(404).json({ error: "Ukjent kode" });
+  const { finderName, finderContact, message, lat, lng } = req.body || {};
+  await db.createFoundReport({
+    itemId: item.id,
+    finderName,
+    finderContact,
+    message,
+    lat: typeof lat === "number" ? lat : null,
+    lng: typeof lng === "number" ? lng : null,
+  });
+  await db.createNotification({
+    userId: item.ownerId,
+    kind: "found_report",
+    title: `Noen har rapportert funn av ${item.name}`,
+    body: message || "En finder har lagt igjen en melding.",
+    itemId: item.id,
+  });
   res.json({ ok: true });
 }));
 

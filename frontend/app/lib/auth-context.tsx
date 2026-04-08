@@ -9,11 +9,14 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
+  setUser: (user: User | null) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const PUBLIC_ROUTES = ["/", "/logg-inn", "/registrer", "/om", "/personvern", "/vilkar"];
+const PUBLIC_PREFIXES = ["/funnet/"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -37,11 +40,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Client-side route guard
   useEffect(() => {
     if (loading) return;
-    const isPublic = PUBLIC_ROUTES.includes(pathname);
+    const isPublic =
+      PUBLIC_ROUTES.includes(pathname) ||
+      PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
     if (!user && !isPublic) {
       router.replace("/logg-inn");
     }
   }, [user, loading, pathname, router]);
+
+  const refreshUser = async () => {
+    try {
+      const res = await auth.me();
+      setUser(res.user);
+    } catch {
+      /* stille */
+    }
+  };
 
   const login = async (email: string, password: string) => {
     const { token, user } = await auth.login(email, password);
@@ -64,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, setUser }}>
       {children}
     </AuthContext.Provider>
   );

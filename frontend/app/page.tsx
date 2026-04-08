@@ -288,9 +288,9 @@ export default function LandingPage() {
             <span className="text-sm text-slate-500">© 2026 S-TAG. Alle rettigheter reservert.</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-slate-500">
-            <a href="#" className="hover:text-slate-900">Personvern</a>
-            <a href="#" className="hover:text-slate-900">Vilkår</a>
-            <a href="#" className="hover:text-slate-900">Kontakt</a>
+            <Link href="/personvern" className="hover:text-slate-900">Personvern</Link>
+            <Link href="/vilkar" className="hover:text-slate-900">Vilkår</Link>
+            <Link href="/kontakt" className="hover:text-slate-900">Kontakt</Link>
           </div>
         </div>
       </footer>

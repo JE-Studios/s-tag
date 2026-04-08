@@ -44,6 +44,21 @@ function mapUser(row) {
     passwordHash: row.password_hash,
     plan: row.plan,
     createdAt: row.created_at,
+    phone: row.phone ?? null,
+    address: row.address ?? null,
+    postalCode: row.postal_code ?? null,
+    city: row.city ?? null,
+    avatarUrl: row.avatar_url ?? null,
+    insuranceCompany: row.insurance_company ?? null,
+    insurancePolicy: row.insurance_policy ?? null,
+    notifyEmail: row.notify_email ?? true,
+    notifyPush: row.notify_push ?? true,
+    notifyMarketing: row.notify_marketing ?? false,
+    consentPrivacy: row.consent_privacy ?? false,
+    consentLocation: row.consent_location ?? false,
+    consentVersion: row.consent_version ?? null,
+    language: row.language ?? "nb",
+    lastSeenAt: row.last_seen_at ?? null,
   };
 }
 
@@ -64,6 +79,42 @@ function mapItem(row) {
     lng: row.lng,
     lastSeen: row.last_seen,
     battery: row.battery,
+    createdAt: row.created_at,
+    description: row.description ?? null,
+    serialNumber: row.serial_number ?? null,
+    brand: row.brand ?? null,
+    model: row.model ?? null,
+    color: row.color ?? null,
+    valueNok: row.value_nok ?? null,
+    purchasedAt: row.purchased_at ?? null,
+    photoUrl: row.photo_url ?? null,
+    publicCode: row.public_code ?? null,
+    lostMessage: row.lost_message ?? null,
+  };
+}
+
+function mapNotification(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    kind: row.kind,
+    title: row.title,
+    body: row.body,
+    itemId: row.item_id,
+    readAt: row.read_at,
+    createdAt: row.created_at,
+  };
+}
+
+function mapEvent(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    itemId: row.item_id,
+    userId: row.user_id,
+    kind: row.kind,
+    detail: row.detail,
     createdAt: row.created_at,
   };
 }
@@ -174,8 +225,11 @@ async function createItem(item) {
     const r = await pool.query(
       `INSERT INTO items
        (id, owner_id, name, tag_id, status, category, chip_uid, chip_paired_at,
-        chip_last_ping, chip_status, lat, lng, last_seen, battery)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+        chip_last_ping, chip_status, lat, lng, last_seen, battery,
+        description, serial_number, brand, model, color, value_nok, purchased_at,
+        photo_url, public_code)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
+               $15,$16,$17,$18,$19,$20,$21,$22,$23)
        RETURNING *`,
       [
         item.id, item.ownerId, item.name, item.tagId, item.status || "secured",
@@ -183,6 +237,10 @@ async function createItem(item) {
         item.chipLastPing, item.chipStatus || "unpaired",
         item.lat ?? 59.9139, item.lng ?? 10.7522,
         item.lastSeen || "Registrert nettopp", item.battery ?? null,
+        item.description ?? null, item.serialNumber ?? null,
+        item.brand ?? null, item.model ?? null, item.color ?? null,
+        item.valueNok ?? null, item.purchasedAt ?? null,
+        item.photoUrl ?? null, item.publicCode ?? null,
       ]
     );
     return mapItem(r.rows[0]);
@@ -201,6 +259,10 @@ async function updateItem(id, ownerId, patch) {
       chip_uid: "chipUid", chip_paired_at: "chipPairedAt",
       chip_last_ping: "chipLastPing", chip_status: "chipStatus",
       lat: "lat", lng: "lng", last_seen: "lastSeen", battery: "battery",
+      description: "description", serial_number: "serialNumber",
+      brand: "brand", model: "model", color: "color",
+      value_nok: "valueNok", purchased_at: "purchasedAt",
+      photo_url: "photoUrl", public_code: "publicCode", lost_message: "lostMessage",
     };
     const sets = [];
     const vals = [];
@@ -382,11 +444,238 @@ async function acceptTransfer(transferId, newOwnerId) {
   return t;
 }
 
+// ----- USER PROFILE EXTENSIONS -----
+async function updateUserProfile(userId, patch) {
+  if (USE_PG) {
+    const fields = {
+      name: "name",
+      phone: "phone",
+      address: "address",
+      postal_code: "postalCode",
+      city: "city",
+      avatar_url: "avatarUrl",
+      insurance_company: "insuranceCompany",
+      insurance_policy: "insurancePolicy",
+      notify_email: "notifyEmail",
+      notify_push: "notifyPush",
+      notify_marketing: "notifyMarketing",
+      consent_privacy: "consentPrivacy",
+      consent_location: "consentLocation",
+      consent_version: "consentVersion",
+      language: "language",
+    };
+    const sets = [];
+    const vals = [];
+    let i = 1;
+    for (const [col, jsKey] of Object.entries(fields)) {
+      if (patch[jsKey] !== undefined) {
+        sets.push(`${col} = $${i++}`);
+        vals.push(patch[jsKey]);
+      }
+    }
+    if (sets.length === 0) return findUserById(userId);
+    vals.push(userId);
+    const r = await pool.query(
+      `UPDATE users SET ${sets.join(", ")} WHERE id = $${i} RETURNING *`,
+      vals
+    );
+    return mapUser(r.rows[0]);
+  }
+  const d = jsonLoad();
+  const idx = d.users.findIndex((u) => u.id === userId);
+  if (idx === -1) return null;
+  d.users[idx] = { ...d.users[idx], ...patch, id: userId };
+  jsonSave(d);
+  return d.users[idx];
+}
+
+async function updateUserPassword(userId, passwordHash) {
+  if (USE_PG) {
+    await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [passwordHash, userId]);
+    return true;
+  }
+  const d = jsonLoad();
+  const idx = d.users.findIndex((u) => u.id === userId);
+  if (idx === -1) return false;
+  d.users[idx].passwordHash = passwordHash;
+  jsonSave(d);
+  return true;
+}
+
+async function touchUserLastSeen(userId) {
+  if (USE_PG) {
+    await pool.query(`UPDATE users SET last_seen_at = NOW() WHERE id = $1`, [userId]).catch(() => {});
+    return;
+  }
+}
+
+async function deleteUser(userId) {
+  if (USE_PG) {
+    await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+    return true;
+  }
+  const d = jsonLoad();
+  d.users = d.users.filter((u) => u.id !== userId);
+  d.items = d.items.filter((i) => i.ownerId !== userId);
+  d.transfers = d.transfers.filter((t) => t.fromUserId !== userId);
+  jsonSave(d);
+  return true;
+}
+
+// ----- NOTIFICATIONS -----
+async function createNotification({ userId, kind, title, body, itemId }) {
+  if (USE_PG) {
+    const r = await pool.query(
+      `INSERT INTO notifications (user_id, kind, title, body, item_id)
+       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [userId, kind, title, body || null, itemId || null]
+    );
+    return mapNotification(r.rows[0]);
+  }
+  const d = jsonLoad();
+  d.notifications ||= [];
+  const n = { id: Date.now(), userId, kind, title, body, itemId, readAt: null, createdAt: new Date().toISOString() };
+  d.notifications.push(n);
+  jsonSave(d);
+  return n;
+}
+
+async function listNotifications(userId, limit = 50) {
+  if (USE_PG) {
+    const r = await pool.query(
+      `SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
+      [userId, limit]
+    );
+    return r.rows.map(mapNotification);
+  }
+  const d = jsonLoad();
+  d.notifications ||= [];
+  return d.notifications.filter((n) => n.userId === userId).slice(-limit).reverse();
+}
+
+async function markNotificationRead(notifId, userId) {
+  if (USE_PG) {
+    await pool.query(
+      `UPDATE notifications SET read_at = NOW() WHERE id = $1 AND user_id = $2`,
+      [notifId, userId]
+    );
+    return true;
+  }
+  return true;
+}
+
+async function markAllNotificationsRead(userId) {
+  if (USE_PG) {
+    await pool.query(
+      `UPDATE notifications SET read_at = NOW() WHERE user_id = $1 AND read_at IS NULL`,
+      [userId]
+    );
+    return true;
+  }
+  return true;
+}
+
+async function countUnreadNotifications(userId) {
+  if (USE_PG) {
+    const r = await pool.query(
+      `SELECT COUNT(*)::int AS c FROM notifications WHERE user_id = $1 AND read_at IS NULL`,
+      [userId]
+    );
+    return r.rows[0].c;
+  }
+  return 0;
+}
+
+// ----- ITEM EVENTS -----
+async function createItemEvent({ itemId, userId, kind, detail }) {
+  if (USE_PG) {
+    await pool.query(
+      `INSERT INTO item_events (item_id, user_id, kind, detail) VALUES ($1,$2,$3,$4)`,
+      [itemId, userId || null, kind, detail || null]
+    );
+    return true;
+  }
+  return true;
+}
+
+async function listItemEvents(itemId, limit = 50) {
+  if (USE_PG) {
+    const r = await pool.query(
+      `SELECT * FROM item_events WHERE item_id = $1 ORDER BY created_at DESC LIMIT $2`,
+      [itemId, limit]
+    );
+    return r.rows.map(mapEvent);
+  }
+  return [];
+}
+
+// ----- STATS -----
+async function getUserStats(userId) {
+  if (USE_PG) {
+    const r = await pool.query(
+      `SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE status = 'secured')::int AS secured,
+        COUNT(*) FILTER (WHERE status = 'missing')::int AS missing,
+        COUNT(*) FILTER (WHERE chip_status = 'active')::int AS chip_active,
+        COUNT(*) FILTER (WHERE chip_status = 'unpaired')::int AS chip_unpaired,
+        COALESCE(SUM(value_nok), 0)::bigint AS total_value
+      FROM items WHERE owner_id = $1`,
+      [userId]
+    );
+    const row = r.rows[0];
+    return {
+      total: row.total,
+      secured: row.secured,
+      missing: row.missing,
+      chipActive: row.chip_active,
+      chipUnpaired: row.chip_unpaired,
+      totalValueNok: Number(row.total_value),
+    };
+  }
+  const d = jsonLoad();
+  const mine = d.items.filter((i) => i.ownerId === userId);
+  return {
+    total: mine.length,
+    secured: mine.filter((i) => i.status === "secured").length,
+    missing: mine.filter((i) => i.status === "missing").length,
+    chipActive: mine.filter((i) => i.chipStatus === "active").length,
+    chipUnpaired: mine.filter((i) => i.chipStatus === "unpaired").length,
+    totalValueNok: mine.reduce((s, i) => s + (i.valueNok || 0), 0),
+  };
+}
+
+// ----- PUBLIC FOUND FLOW -----
+async function findItemByPublicCode(code) {
+  if (USE_PG) {
+    const r = await pool.query(`SELECT * FROM items WHERE public_code = $1`, [code]);
+    return mapItem(r.rows[0]);
+  }
+  const d = jsonLoad();
+  return d.items.find((i) => i.publicCode === code) || null;
+}
+
+async function createFoundReport({ itemId, finderName, finderContact, message, lat, lng }) {
+  if (USE_PG) {
+    await pool.query(
+      `INSERT INTO found_reports (item_id, finder_name, finder_contact, message, lat, lng)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [itemId, finderName || null, finderContact || null, message || null, lat ?? null, lng ?? null]
+    );
+    return true;
+  }
+  return true;
+}
+
 module.exports = {
   USE_PG,
   initSchema,
-  createUser, findUserByEmail, findUserById,
+  createUser, findUserByEmail, findUserById, updateUserProfile, updateUserPassword, deleteUser, touchUserLastSeen,
   listItemsByOwner, getItem, createItem, updateItem, deleteItem,
   findItemByChipUid, pairChip, unpairChip, recordChipPing, updateItemFromPing,
   listTransfersForUser, createTransfer, getTransfer, acceptTransfer,
+  createNotification, listNotifications, markNotificationRead, markAllNotificationsRead, countUnreadNotifications,
+  createItemEvent, listItemEvents,
+  getUserStats,
+  findItemByPublicCode, createFoundReport,
 };

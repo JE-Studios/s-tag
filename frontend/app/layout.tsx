@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import BottomNav from "./components/BottomNav";
 import { AuthProvider } from "./lib/auth-context";
+import { ToastProvider } from "./components/Toast";
 
 export const metadata: Metadata = {
   title: "S-TAG | Sikring og sporing av dine verdier",
@@ -28,10 +29,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-white text-slate-900">
-        <AuthProvider>
-          {children}
-          <BottomNav />
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            {children}
+            <BottomNav />
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

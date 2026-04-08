@@ -40,6 +40,21 @@ export type User = {
   name: string;
   createdAt: string;
   plan: string;
+  phone?: string | null;
+  address?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  avatarUrl?: string | null;
+  insuranceCompany?: string | null;
+  insurancePolicy?: string | null;
+  notifyEmail?: boolean;
+  notifyPush?: boolean;
+  notifyMarketing?: boolean;
+  consentPrivacy?: boolean;
+  consentLocation?: boolean;
+  consentVersion?: string | null;
+  language?: string;
+  lastSeenAt?: string | null;
 };
 
 export type Item = {
@@ -58,6 +73,16 @@ export type Item = {
   lastSeen: string;
   battery?: number;
   createdAt?: string;
+  description?: string | null;
+  serialNumber?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
+  valueNok?: number | null;
+  purchasedAt?: string | null;
+  photoUrl?: string | null;
+  publicCode?: string | null;
+  lostMessage?: string | null;
 };
 
 export type Transfer = {
@@ -70,6 +95,35 @@ export type Transfer = {
   createdAt: string;
   status: "pending" | "accepted" | "rejected";
   acceptedAt?: string;
+};
+
+export type Notification = {
+  id: number;
+  userId: string;
+  kind: string;
+  title: string;
+  body: string | null;
+  itemId: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type ItemEvent = {
+  id: number;
+  itemId: string;
+  userId: string | null;
+  kind: string;
+  detail: string | null;
+  createdAt: string;
+};
+
+export type Stats = {
+  total: number;
+  secured: number;
+  missing: number;
+  chipActive: number;
+  chipUnpaired: number;
+  totalValueNok: number;
 };
 
 // ---- Auth ----
@@ -85,6 +139,25 @@ export const auth = {
       body: JSON.stringify({ email, password }),
     }),
   me: () => request<{ user: User }>("/api/auth/me"),
+  updateProfile: (patch: Partial<User>) =>
+    request<{ user: User }>("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
+  changePassword: (oldPassword: string, newPassword: string) =>
+    request<{ ok: true }>("/api/auth/password", {
+      method: "POST",
+      body: JSON.stringify({ oldPassword, newPassword }),
+    }),
+  deleteAccount: () => request<{ ok: true }>("/api/auth/me", { method: "DELETE" }),
+  exportData: async () => {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/auth/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error("Eksport feilet");
+    return res.blob();
+  },
 };
 
 // ---- Items ----
@@ -96,6 +169,14 @@ export const items = {
   update: (id: string, data: Partial<Item>) =>
     request<Item>(`/api/items/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   remove: (id: string) => request<{ ok: true }>(`/api/items/${id}`, { method: "DELETE" }),
+  markLost: (id: string, message?: string) =>
+    request<Item>(`/api/items/${id}/lost`, {
+      method: "POST",
+      body: JSON.stringify({ message }),
+    }),
+  markFound: (id: string) =>
+    request<Item>(`/api/items/${id}/found`, { method: "POST" }),
+  events: (id: string) => request<ItemEvent[]>(`/api/items/${id}/events`),
 };
 
 // ---- Chip ----
@@ -119,4 +200,31 @@ export const transfers = {
     }),
   accept: (id: string) =>
     request<Transfer>(`/api/transfers/${id}/accept`, { method: "POST" }),
+};
+
+// ---- Notifications ----
+export const notifications = {
+  list: () => request<Notification[]>("/api/notifications"),
+  unreadCount: () => request<{ count: number }>("/api/notifications/unread-count"),
+  markAllRead: () =>
+    request<{ ok: true }>("/api/notifications/read-all", { method: "POST" }),
+};
+
+// ---- Stats ----
+export const stats = {
+  me: () => request<Stats>("/api/stats"),
+};
+
+// ---- Public Found Flow ----
+export const found = {
+  lookup: (code: string) =>
+    request<Partial<Item>>(`/api/found/${encodeURIComponent(code)}`),
+  report: (
+    code: string,
+    data: { finderName?: string; finderContact?: string; message?: string; lat?: number; lng?: number }
+  ) =>
+    request<{ ok: true }>(`/api/found/${encodeURIComponent(code)}/report`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
