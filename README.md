@@ -28,7 +28,7 @@ Se [LAUNCH.md](./LAUNCH.md) for full deploy-guide til Vercel + Railway + Google 
 
 ## Arkitektur
 
-- **Auth**: JWT (HS256, Node crypto, ingen eksterne deps), scrypt password hashing
+- **Auth**: JWT (HS256, Node crypto, ingen eksterne deps), scrypt password hashing, OAuth-login
 - **Database**: Postgres i prod (via `DATABASE_URL`), JSON-fallback lokalt
 - **API**: REST under `/api/*` med Bearer token
 - **Chip**: Klart for NFC/BLE — bytt mock-UID i `frontend/app/kartotek/detalj/page.tsx` mot `@capacitor-community/nfc` når hardware er klar
@@ -36,9 +36,13 @@ Se [LAUNCH.md](./LAUNCH.md) for full deploy-guide til Vercel + Railway + Google 
 ## Status
 
 - [x] Backend med auth, items, transfers, chip-endepunkter
-- [x] Landingsside + login + registrering + dashboard
+- [x] Landingsside + login + registrering + hjem-dashboard
+- [x] OAuth-login, innstillinger, personvern, vilkår, varsler, funnet-melding
+- [x] Sporing med kart (react-leaflet)
+- [x] Eierskifte med signatur-callback
 - [x] Static export for mobile wrapper
 - [x] Android-plattform + ikon/splash generert
-- [ ] Deploy til Railway + Vercel (venter på kontoer)
+- [x] Deploy til Vercel — [s-tag-hazel.vercel.app](https://s-tag-hazel.vercel.app)
+- [ ] Deploy til Railway (venter på konto)
 - [ ] Domene
 - [ ] iOS-plattform (venter på Xcode + Apple Developer)
