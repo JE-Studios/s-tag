@@ -2,8 +2,5 @@
 # Alle endringer skal automatisk be om review fra eieren(e) listet her.
 # Se https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Standard: alle filer
-*   @eliahslette
-
-# Legg til Jonah her når han er invitert og har godkjent:
-# *   @eliahslette @<jonah-github-brukernavn>
+# Standard: alle filer — begge grunnleggere må kunne approve
+*   @eliahslette @JonahSlette
