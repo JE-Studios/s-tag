@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+**/node_modules/
+node_modules.win/
+**/node_modules.win/
+
+# Env & secrets
+.env
+.env.local
+.env.production
+**/.env
+**/.env.local
+**/.env.production
+
+# Build output
+frontend/.next/
+frontend/out/
+mobile/www/
+mobile/ios/App/App/public/
+mobile/android/app/src/main/assets/public/
+
+# Local data
+backend/data.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Large binaries / Windows installer
+*.exe
+runtime/
+scripts/
+Start S-TAG.bat
+Start S-TAG.command
+LES MEG FØRST.txt
+
+# Android build output
+mobile/android/.gradle/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/app/release/
+mobile/android/local.properties
+mobile/android/captures/
+mobile/android/.idea/
+
+# iOS build output (when added senere)
+mobile/ios/App/Pods/
+mobile/ios/App/build/
+mobile/ios/DerivedData/
+
+# Capacitor generated assets cache
+mobile/resources/.capacitor-assets/

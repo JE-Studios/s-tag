@@ -1,0 +1,23 @@
+{
+  "name": "s-tag-mobile",
+  "version": "1.0.0",
+  "description": "S-TAG mobile app (iOS + Android) via Capacitor",
+  "private": true,
+  "scripts": {
+    "build:web": "cd ../frontend && STAG_STATIC_EXPORT=1 npm run build && cp -r out ../mobile/www",
+    "sync": "npx cap sync",
+    "ios:open": "npx cap open ios",
+    "android:open": "npx cap open android",
+    "ios:run": "npx cap run ios",
+    "android:run": "npx cap run android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/cli": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/ios": "^6.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}

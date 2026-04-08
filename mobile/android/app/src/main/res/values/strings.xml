@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">S-TAG</string>
+    <string name="title_activity_main">S-TAG</string>
+    <string name="package_name">no.stag.app</string>
+    <string name="custom_url_scheme">no.stag.app</string>
+</resources>

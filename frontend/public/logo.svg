@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 720" fill="none">
+  <!-- Outer scribble circle -->
+  <ellipse cx="512" cy="360" rx="395" ry="330" stroke="#0F2A5C" stroke-width="6" fill="none" opacity="0.95"/>
+  <ellipse cx="512" cy="360" rx="385" ry="320" stroke="#0F2A5C" stroke-width="3" fill="none" opacity="0.6" transform="rotate(-2 512 360)"/>
+  <!-- Decorative flowing tail extending right -->
+  <path d="M 880 380 Q 945 360, 920 340 Q 895 320, 870 350" stroke="#0F2A5C" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M 140 480 Q 100 510, 130 525 Q 165 540, 200 510" stroke="#0F2A5C" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Stylized cursive S -->
+  <path d="M 600 220
+           C 580 180, 520 170, 470 190
+           C 410 215, 390 270, 430 305
+           C 470 340, 540 340, 580 380
+           C 625 425, 600 490, 530 510
+           C 470 525, 400 510, 380 470"
+        stroke="#0F2A5C" stroke-width="38" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Top flourish on S -->
+  <path d="M 600 220 Q 625 200, 645 215" stroke="#0F2A5C" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- Bottom flourish on S -->
+  <path d="M 380 470 Q 360 490, 370 515" stroke="#0F2A5C" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>
