@@ -44,6 +44,7 @@ export default function BottomNav() {
             )}
             <motion.span
               animate={{ scale: active ? 1.05 : 1, y: active ? -2 : 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
               className={`material-symbols-outlined text-2xl relative z-10 transition-colors ${
                 active ? "text-[#0f2a5c]" : "text-slate-400 group-hover:text-slate-700"
               }`}

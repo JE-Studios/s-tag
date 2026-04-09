@@ -56,12 +56,12 @@ export default function HomePage() {
         >
           <motion.div
             className="mx-auto mb-4"
-            initial={{ scale: 0, rotate: -180 }}
+            initial={{ scale: 0.85, opacity: 0 }}
             animate={{
               scale: 1,
-              rotate: 0,
+              opacity: 1,
             }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           >
             <motion.div
               animate={{
@@ -164,7 +164,7 @@ export default function HomePage() {
                 className="aspect-square bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 group transition-all duration-300 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:bg-white hover:border-[#0f2a5c]/20"
               >
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 3 }}
+                  whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-16 h-16 flex items-center justify-center bg-white rounded-full border border-slate-100 group-hover:bg-[#0f2a5c] transition-colors duration-300"
                 >
@@ -190,9 +190,9 @@ export default function HomePage() {
 
         {user && hasItems && (
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-md mt-10"
           >
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 to-white p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all">

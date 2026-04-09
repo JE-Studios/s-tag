@@ -178,9 +178,9 @@ export default function SporingPage() {
 
         {/* My location button — henter ekte GPS-posisjon og flyr kartet dit */}
         <motion.button
-          initial={{ scale: 0, rotate: -90 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.4, type: "spring", stiffness: 260, damping: 24 }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
           onClick={goToMyLocation}
@@ -200,9 +200,9 @@ export default function SporingPage() {
 
         {/* Bottom sheet — clickable list (fixed so BottomNav stays below) */}
         <motion.div
-          initial={{ y: 200, opacity: 0 }}
+          initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
           className="fixed bottom-[100px] left-4 right-4 z-40 max-w-lg mx-auto"
         >
           <div className="glass p-4 rounded-2xl shadow-2xl border border-slate-200/60">

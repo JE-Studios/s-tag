@@ -50,10 +50,7 @@ export default function TopBar({
   const showBell = !rightSlot && !showCustomBtn;
 
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+    <header
       className="fixed top-0 w-full z-50 glass border-b border-slate-100"
     >
       <div className="flex items-center justify-between px-6 h-16 w-full max-w-2xl mx-auto">
@@ -113,6 +110,6 @@ export default function TopBar({
           </div>
         )}
       </div>
-    </motion.header>
+    </header>
   );
 }
