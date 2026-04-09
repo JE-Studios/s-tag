@@ -23,6 +23,8 @@ const da: Record<string, string> = {
   "common.inactive": "Inaktiv",
   "common.active": "{0} aktive",
   "common.error": "Noget gik galt",
+  "common.offline": "Ingen internetforbindelse",
+  "common.deleteAll": "Slet alle",
 
   // Time
   "time.now": "lige nu",
@@ -228,6 +230,7 @@ const da: Record<string, string> = {
   "varsler.markedAllRead": "Alle notifikationer markeret som l\u00e6st",
   "varsler.emptyTitle": "Ingen notifikationer endnu",
   "varsler.emptySub": "N\u00e5r noget sker med dine genstande, vises det her.",
+  "varsler.confirmDeleteAll": "Er du sikker p\u00e5, at du vil slette alle notifikationer?",
 
   // Innstillinger
   "settings.title": "Indstillinger",

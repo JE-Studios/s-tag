@@ -867,6 +867,11 @@ app.post("/api/notifications/read-all", requireAuth, h(async (req, res) => {
   res.json({ ok: true });
 }));
 
+app.delete("/api/notifications", requireAuth, h(async (req, res) => {
+  await db.deleteAllNotifications(req.userId);
+  res.json({ ok: true });
+}));
+
 // ============================================================================
 // STATS
 // ============================================================================

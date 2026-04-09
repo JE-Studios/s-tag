@@ -304,6 +304,8 @@ export const notifications = {
   unreadCount: () => request<{ count: number }>("/api/notifications/unread-count"),
   markAllRead: () =>
     request<{ ok: true }>("/api/notifications/read-all", { method: "POST" }),
+  deleteAll: () =>
+    request<{ ok: true }>("/api/notifications", { method: "DELETE" }),
 };
 
 // ---- Stats ----

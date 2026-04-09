@@ -23,6 +23,8 @@ const fr: Record<string, string> = {
   "common.inactive": "Inactif",
   "common.active": "{0} actifs",
   "common.error": "Une erreur est survenue",
+  "common.offline": "Pas de connexion internet",
+  "common.deleteAll": "Tout supprimer",
 
   // Time
   "time.now": "\u00e0 l\u2019instant",
@@ -228,6 +230,7 @@ const fr: Record<string, string> = {
   "varsler.markedAllRead": "Toutes les alertes marqu\u00e9es comme lues",
   "varsler.emptyTitle": "Aucune alerte pour l\u2019instant",
   "varsler.emptySub": "Les \u00e9v\u00e9nements li\u00e9s \u00e0 vos objets appara\u00eetront ici.",
+  "varsler.confirmDeleteAll": "\u00cates-vous s\u00fbr de vouloir supprimer toutes les notifications ?",
 
   // Innstillinger
   "settings.title": "Param\u00e8tres",

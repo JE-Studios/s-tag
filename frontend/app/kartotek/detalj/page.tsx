@@ -40,6 +40,8 @@ function ItemDetailPage() {
   const [address, setAddress] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [photoEdit, setPhotoEdit] = useState<string | null>(null);
+  const [toggling, setToggling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const statusMeta = {
     secured: { label: t("common.secured"), color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-500", icon: "verified" },
@@ -108,6 +110,7 @@ function ItemDetailPage() {
   const isMissing = item.status === "missing";
 
   const toggleLost = async () => {
+    setToggling(true);
     try {
       if (isMissing) {
         await itemsApi.markFound(item.id);
@@ -122,6 +125,8 @@ function ItemDetailPage() {
       setEvents(ev);
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke oppdatere");
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -142,12 +147,14 @@ function ItemDetailPage() {
 
   const removeItem = async () => {
     if (!confirm(t("detalj.confirmDelete", item.name))) return;
+    setDeleting(true);
     try {
       await itemsApi.remove(item.id);
       toast.success(t("detalj.deleted"));
       router.replace("/kartotek");
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke slette");
+      setDeleting(false);
     }
   };
 
@@ -356,22 +363,26 @@ function ItemDetailPage() {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={toggleLost}
-            className={`rounded-2xl py-4 px-4 flex flex-col items-center gap-2 shadow-sm border transition ${
+            disabled={toggling}
+            className={`rounded-2xl py-4 px-4 flex flex-col items-center gap-2 shadow-sm border transition disabled:opacity-50 ${
               isMissing
                 ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
                 : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
             }`}
           >
-            <span className="material-symbols-outlined">
-              {isMissing ? "check_circle" : "location_off"}
+            <span className={`material-symbols-outlined ${toggling ? "animate-spin" : ""}`}>
+              {toggling ? "progress_activity" : isMissing ? "check_circle" : "location_off"}
             </span>
             <span className="text-xs font-bold">{isMissing ? t("detalj.markFound") : t("detalj.markMissing")}</span>
           </button>
           <button
             onClick={removeItem}
-            className="bg-white border border-slate-200 text-slate-700 rounded-2xl py-4 px-4 flex flex-col items-center gap-2 shadow-sm hover:bg-slate-50 transition"
+            disabled={deleting}
+            className="bg-white border border-slate-200 text-slate-700 rounded-2xl py-4 px-4 flex flex-col items-center gap-2 shadow-sm hover:bg-slate-50 transition disabled:opacity-50"
           >
-            <span className="material-symbols-outlined">delete</span>
+            <span className={`material-symbols-outlined ${deleting ? "animate-spin" : ""}`}>
+              {deleting ? "progress_activity" : "delete"}
+            </span>
             <span className="text-xs font-bold">{t("detalj.deleteItem")}</span>
           </button>
         </div>
