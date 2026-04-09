@@ -11,14 +11,14 @@ import {
   setGeoConsent,
 } from "../lib/use-geolocation";
 import { useToast } from "../components/Toast";
-import { useTranslation, LOCALE_NAMES, LOCALE_FLAGS, Locale } from "../lib/i18n";
+import { useTranslation } from "../lib/i18n";
 
 const SOFT_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function InnstillingerPage() {
   const { user, setUser, logout, refreshUser } = useAuth();
   const toast = useToast();
-  const { t, locale, setLocale } = useTranslation();
+  const { t } = useTranslation();
   const geo = useGeolocation(false);
 
   // Profil
@@ -167,30 +167,6 @@ export default function InnstillingerPage() {
           transition={{ duration: 0.5, ease: SOFT_EASE }}
           className="space-y-8"
         >
-          {/* Sprak */}
-          <SettingsCard title={t("settings.language")} subtitle={t("settings.languageSub")}>
-            <div className="grid grid-cols-2 gap-2">
-              {(Object.keys(LOCALE_NAMES) as Locale[]).map((code) => (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => {
-                    setLocale(code);
-                    authApi.updateProfile({ language: code }).catch(() => {});
-                  }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-bold transition ${
-                    locale === code
-                      ? "border-[#0f2a5c] bg-[#0f2a5c]/5 text-[#0f2a5c]"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <span className="text-lg">{LOCALE_FLAGS[code]}</span>
-                  {LOCALE_NAMES[code]}
-                </button>
-              ))}
-            </div>
-          </SettingsCard>
-
           {/* Profil */}
           <SettingsCard title={t("settings.profile")} subtitle={t("settings.profileSub")}>
             <form onSubmit={saveProfile} className="space-y-4">

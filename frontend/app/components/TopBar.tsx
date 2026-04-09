@@ -1,10 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Logo from "./Logo";
-import { notifications as notificationsApi, getToken } from "../lib/api";
+import { notifications as notificationsApi, getToken, auth as authApi } from "../lib/api";
+import { useTranslation, LOCALE_FLAGS, LOCALE_NAMES, Locale } from "../lib/i18n";
 
 interface TopBarProps {
   showBack?: boolean;
@@ -24,6 +25,19 @@ export default function TopBar({
 }: TopBarProps) {
   const router = useRouter();
   const [unread, setUnread] = useState(0);
+  const { locale, setLocale } = useTranslation();
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  // Lukk dropdown ved klikk utenfor
+  useEffect(() => {
+    if (!langOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [langOpen]);
 
   // Poll unread-count hver 60s når innlogget
   useEffect(() => {
@@ -88,6 +102,46 @@ export default function TopBar({
 
         {showBell && (
           <div className="flex items-center gap-1">
+            {/* Språkvelger */}
+            <div ref={langRef} className="relative">
+              <button
+                onClick={() => setLangOpen((v) => !v)}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-base leading-none"
+                aria-label="Velg språk"
+              >
+                {LOCALE_FLAGS[locale]}
+              </button>
+              <AnimatePresence>
+                {langOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-200 py-1 min-w-[160px] z-[200]"
+                  >
+                    {(Object.keys(LOCALE_NAMES) as Locale[]).map((code) => (
+                      <button
+                        key={code}
+                        onClick={() => {
+                          setLocale(code);
+                          authApi.updateProfile({ language: code }).catch(() => {});
+                          setLangOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                          locale === code
+                            ? "font-bold text-[#0f2a5c] bg-slate-50"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span>{LOCALE_FLAGS[code]}</span>
+                        {LOCALE_NAMES[code]}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <Link
               href="/varsler"
               className="relative p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-900 transition-colors"
