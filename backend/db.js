@@ -23,6 +23,10 @@ if (USE_PG) {
     connectionString: DATABASE_URL,
     // Railway/Supabase krever SSL i prod. Lokal Postgres har det ikke.
     ssl: DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false },
+    // Skalering: hold nok connections for concurrent requests uten å overbelaste Postgres.
+    max: parseInt(process.env.PG_POOL_MAX, 10) || 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   });
   pool.on("error", (err) => console.error("pg pool error:", err));
 }
@@ -766,17 +770,23 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
 // Server-koden bruker dette til å generere varsler på chip/ping.
 async function checkGeofence(itemId, lat, lng) {
   if (USE_PG) {
+    // Haversine-beregning direkte i SQL — unngår å hente rad til JS for beregning.
     const r = await pool.query(
-      `SELECT id, home_lat, home_lng, geofence_radius_m, geofence_alerted
-       FROM items WHERE id = $1`,
-      [itemId]
+      `SELECT id, home_lat, home_lng, geofence_radius_m, geofence_alerted,
+         (6371000 * 2 * ASIN(SQRT(
+           POWER(SIN(RADIANS($2 - home_lat) / 2), 2) +
+           COS(RADIANS(home_lat)) * COS(RADIANS($2)) *
+           POWER(SIN(RADIANS($3 - home_lng) / 2), 2)
+         ))) AS distance_m
+       FROM items
+       WHERE id = $1 AND home_lat IS NOT NULL AND home_lng IS NOT NULL AND geofence_radius_m IS NOT NULL`,
+      [itemId, lat, lng]
     );
     const row = r.rows[0];
-    if (!row || row.home_lat == null || row.home_lng == null || !row.geofence_radius_m) return null;
-    const dist = haversineMeters(row.home_lat, row.home_lng, lat, lng);
+    if (!row) return null;
     return {
-      exceeded: dist > row.geofence_radius_m,
-      distanceM: dist,
+      exceeded: row.distance_m > row.geofence_radius_m,
+      distanceM: row.distance_m,
       radiusM: row.geofence_radius_m,
       alreadyAlerted: !!row.geofence_alerted,
     };
@@ -1247,6 +1257,25 @@ async function pingDb() {
   }
 }
 
+// Slett chip_pings eldre enn N dager (default 90). Kjøres periodisk av server.js.
+// Beholder siste ping per chip uansett alder (så man alltid har "siste kjente posisjon").
+const PING_RETENTION_DAYS = parseInt(process.env.PING_RETENTION_DAYS, 10) || 90;
+
+async function cleanupOldPings() {
+  if (!USE_PG) return 0;
+  const r = await pool.query(
+    `DELETE FROM chip_pings
+     WHERE at < NOW() - INTERVAL '1 day' * $1
+       AND id NOT IN (
+         SELECT DISTINCT ON (chip_uid) id
+         FROM chip_pings
+         ORDER BY chip_uid, at DESC
+       )`,
+    [PING_RETENTION_DAYS]
+  );
+  return r.rowCount;
+}
+
 module.exports = {
   USE_PG,
   initSchema,
@@ -1262,4 +1291,5 @@ module.exports = {
   getUserStats,
   findItemByPublicCode, createFoundReport,
   createFeedback, listFeedback,
+  cleanupOldPings,
 };
