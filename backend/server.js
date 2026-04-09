@@ -169,6 +169,7 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, name: "auth" 
 const foundLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 30, name: "found" });
 const feedbackLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, name: "feedback" });
 const chipPingLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, name: "chip" });
+const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, name: "reset" });
 
 // --- Health ---
 app.get("/api/health", h(async (_req, res) => {
@@ -177,6 +178,7 @@ app.get("/api/health", h(async (_req, res) => {
   res.status(dbHealth.ok ? 200 : 503).json({
     status,
     service: "S-TAG backend",
+    build: "2026-04-09a",
     store: dbHealth.store,
     db: dbHealth.ok ? "up" : "down",
     time: new Date().toISOString(),
@@ -441,8 +443,6 @@ setInterval(() => {
     if (now - v.createdAt > RESET_TTL_MS) resetTokens.delete(k);
   }
 }, 10 * 60 * 1000).unref?.();
-
-const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, name: "reset" });
 
 app.post("/api/auth/forgot-password", resetLimiter, h(async (req, res) => {
   const email = String(req.body?.email || "").trim().toLowerCase();
