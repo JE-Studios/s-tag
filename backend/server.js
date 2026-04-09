@@ -16,7 +16,7 @@ const TOKEN_TTL_DAYS = 30;
 
 // CORS: default-liste dekker Vercel + lokal dev + Capacitor. Override via CORS_ORIGINS.
 const DEFAULT_ORIGINS = [
-  "https://s-tag-hazel.vercel.app",
+  "https://s-tag-ten.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
   "capacitor://localhost",
