@@ -1222,14 +1222,19 @@ app.post("/api/chip/ping", chipPingLimiter, h(async (req, res) => {
     // Pingen logges fortsatt for statistikk, men chipen har ikke en eier enda.
     // Dette er normalt for nye produkter som sitter i butikkhylla — chipen
     // kan godt pinge før noen registrerer den i appen.
-    await db.recordChipPing({ ...telemetry, matched: false });
-    await db.markChipPinged(chipUid, { firmwareVersion });
+    await Promise.all([
+      db.recordChipPing({ ...telemetry, matched: false }),
+      db.markChipPinged(chipUid, { firmwareVersion }),
+    ]);
     return res.status(202).json({ ok: true, status: "unclaimed" });
   }
 
-  await db.updateItemFromPing(chipUid, { lat, lng, battery, accuracyM, speedMps, temperatureC });
-  await db.recordChipPing({ ...telemetry, matched: true });
-  await db.markChipPinged(chipUid, { firmwareVersion });
+  // Kjør alle 3 DB-operasjoner parallelt — de er uavhengige av hverandre.
+  await Promise.all([
+    db.updateItemFromPing(chipUid, { lat, lng, battery, accuracyM, speedMps, temperatureC }),
+    db.recordChipPing({ ...telemetry, matched: true }),
+    db.markChipPinged(chipUid, { firmwareVersion }),
+  ]);
 
   // Geofence-sjekk: hvis chipen er utenfor "hjemme-sonen" og eieren
   // ikke allerede har fått varsel, send et notification.
@@ -1669,15 +1674,51 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || "Server error" });
 });
 
-// --- Startup ---
-(async () => {
-  try {
-    await db.initSchema();
-  } catch (err) {
-    console.error("Schema init failed:", err.message);
-    if (db.USE_PG) process.exit(1);
-  }
-  app.listen(PORT, () => {
-    console.log(`S-TAG backend running on http://localhost:${PORT} (store: ${db.USE_PG ? "postgres" : "json"})`);
+// --- Startup with cluster mode ---
+const cluster = require("cluster");
+const os = require("os");
+
+// Antall workers: bruk WORKERS env-var eller antall CPU-kjerner (maks 4 i prod for å spare RAM)
+const WORKERS = parseInt(process.env.WORKERS, 10) || Math.min(os.cpus().length, 4);
+
+if (cluster.isPrimary && WORKERS > 1 && process.env.NODE_ENV === "production") {
+  console.log(`S-TAG primary ${process.pid}: spawning ${WORKERS} workers`);
+
+  for (let i = 0; i < WORKERS; i++) cluster.fork();
+
+  cluster.on("exit", (worker, code) => {
+    console.error(`Worker ${worker.process.pid} died (code ${code}), restarting...`);
+    cluster.fork();
   });
-})();
+} else {
+  (async () => {
+    try {
+      await db.initSchema();
+    } catch (err) {
+      console.error("Schema init failed:", err.message);
+      if (db.USE_PG) process.exit(1);
+    }
+    app.listen(PORT, () => {
+      const mode = WORKERS > 1 && process.env.NODE_ENV === "production" ? `cluster (worker ${process.pid})` : "single";
+      console.log(`S-TAG backend [${mode}] on http://localhost:${PORT} (store: ${db.USE_PG ? "postgres" : "json"})`);
+    });
+
+    // Periodisk opprydding av gamle chip_pings (kun i én worker / single mode).
+    // Kjøres daglig. Beholder siste ping per chip uansett alder.
+    const isPrimaryWorker = !cluster.isWorker || cluster.worker.id === 1;
+    if (isPrimaryWorker && db.USE_PG) {
+      const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 timer
+      async function runCleanup() {
+        try {
+          const deleted = await db.cleanupOldPings();
+          if (deleted > 0) console.log(`Cleanup: slettet ${deleted} gamle chip_pings`);
+        } catch (err) {
+          console.error("Cleanup feilet:", err.message);
+        }
+      }
+      // Første kjøring 5 min etter oppstart, deretter daglig
+      setTimeout(runCleanup, 5 * 60 * 1000);
+      setInterval(runCleanup, CLEANUP_INTERVAL_MS);
+    }
+  })();
+}

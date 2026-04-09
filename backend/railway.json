@@ -5,10 +5,12 @@
     "watchPatterns": ["**"]
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "NODE_ENV=production node server.js",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 10,
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
+    "restartPolicyMaxRetries": 5,
+    "numReplicas": 1,
+    "sleepApplication": false
   }
 }

@@ -238,3 +238,6 @@ CREATE TABLE IF NOT EXISTS feedback (
 CREATE INDEX IF NOT EXISTS feedback_created_idx ON feedback(created_at DESC);
 
 CREATE INDEX IF NOT EXISTS found_reports_item_idx ON found_reports(item_id, created_at DESC);
+
+-- Indeks for effektiv opprydding av gamle chip_pings (brukes av scheduled cleanup)
+CREATE INDEX IF NOT EXISTS chip_pings_at_idx ON chip_pings(at);

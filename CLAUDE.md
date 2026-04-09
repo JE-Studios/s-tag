@@ -130,6 +130,9 @@ Glem ALDRI steg 3. Branch protection skal alltid være aktiv når du er ferdig.
 | `APP_BASE_URL` | Frontend-URL for lenker i e-post (https://s-tag-ten.vercel.app) |
 | `CORS_ORIGINS` | Valgfri: ekstra CORS-domener (kommaseparert, IKKE wildcard) |
 | `FEEDBACK_FROM` | Valgfri: avsenderadresse for e-post (default: onboarding@resend.dev) |
+| `WORKERS` | Valgfri: antall cluster workers (default: min(CPU-kjerner, 4)) |
+| `PG_POOL_MAX` | Valgfri: maks Postgres-connections per worker (default: 20) |
+| `PING_RETENTION_DAYS` | Valgfri: antall dager chip_pings beholdes (default: 90) |
 
 ### Vercel miljøvariabler
 
@@ -182,6 +185,7 @@ Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
 - Flerspråklig: 7 språk (nb, en, de, es, fr, da, sv) med auto-deteksjon og språkvelger i TopBar
 - JWT expiry-sjekk i frontend (utløpt token fjernes automatisk)
 - Geocoding debounce (400ms) på sporingssiden
+- Skalerbar backend: Node.js cluster mode (multi-core), optimalisert pg.Pool, parallelle DB-kall på chip/ping, geofence-beregning i SQL, automatisk opprydding av gamle chip_pings (90 dager default)
 
 ### Blokkert
 - **E-post til andre brukere:** Resend sin test-avsender (`onboarding@resend.dev`) kan KUN sende til kontoeier (`eliah.slette@gmail.com`). Alle andre brukere får ikke e-post (glemt passord, varsler osv.). Krever: kjøpe eget domene + verifisere DNS i Resend.
