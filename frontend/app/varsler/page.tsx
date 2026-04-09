@@ -64,6 +64,16 @@ export default function VarslerPage() {
     }
   };
 
+  const deleteAll = async () => {
+    if (!confirm(t("varsler.confirmDeleteAll"))) return;
+    try {
+      await notificationsApi.deleteAll();
+      setList([]);
+    } catch (err: any) {
+      toast.error(err.message || "Kunne ikke slette");
+    }
+  };
+
   const unread = list.filter((n) => !n.readAt).length;
 
   return (
@@ -82,14 +92,24 @@ export default function VarslerPage() {
               {unread > 0 ? t("varsler.unread", unread) : t("varsler.allRead")}
             </p>
           </div>
-          {unread > 0 && (
-            <button
-              onClick={markAllRead}
-              className="text-xs font-bold text-[#0f2a5c] hover:underline whitespace-nowrap"
-            >
-              {t("varsler.markAllRead")}
-            </button>
-          )}
+          <div className="flex gap-3">
+            {unread > 0 && (
+              <button
+                onClick={markAllRead}
+                className="text-xs font-bold text-[#0f2a5c] hover:underline whitespace-nowrap"
+              >
+                {t("varsler.markAllRead")}
+              </button>
+            )}
+            {list.length > 0 && (
+              <button
+                onClick={deleteAll}
+                className="text-xs font-bold text-red-600 hover:underline whitespace-nowrap"
+              >
+                {t("common.deleteAll")}
+              </button>
+            )}
+          </div>
         </motion.section>
 
         {loading && (

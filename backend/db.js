@@ -1091,6 +1091,13 @@ async function markAllNotificationsRead(userId) {
   return true;
 }
 
+async function deleteAllNotifications(userId) {
+  if (USE_PG) {
+    await pool.query(`DELETE FROM notifications WHERE user_id = $1`, [userId]);
+  }
+  return true;
+}
+
 async function countUnreadNotifications(userId) {
   if (USE_PG) {
     const r = await pool.query(
@@ -1286,7 +1293,7 @@ module.exports = {
   getChipByUid, listChips, createChip, bulkCreateChips, claimChip, releaseChip, countChips,
   markChipPinged, checkGeofence, markGeofenceAlerted,
   listTransfersForUser, createTransfer, getTransfer, acceptTransfer, setTransferSignature,
-  createNotification, listNotifications, markNotificationRead, markAllNotificationsRead, countUnreadNotifications,
+  createNotification, listNotifications, markNotificationRead, markAllNotificationsRead, deleteAllNotifications, countUnreadNotifications,
   createItemEvent, listItemEvents,
   getUserStats,
   findItemByPublicCode, createFoundReport,

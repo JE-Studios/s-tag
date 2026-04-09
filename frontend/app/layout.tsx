@@ -5,6 +5,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./lib/auth-context";
 import { ToastProvider } from "./components/Toast";
 import { I18nProvider } from "./lib/i18n";
+import OfflineBanner from "./components/OfflineBanner";
 
 export const metadata: Metadata = {
   title: "S-TAG | Innebygd sikring for det du eier",
@@ -64,6 +65,7 @@ export default function RootLayout({
           <I18nProvider>
             <ToastProvider>
               <AuthProvider>
+                <OfflineBanner />
                 {children}
                 <BottomNav />
               </AuthProvider>

@@ -23,6 +23,8 @@ const de: Record<string, string> = {
   "common.inactive": "Inaktiv",
   "common.active": "{0} aktiv",
   "common.error": "Etwas ist schiefgelaufen",
+  "common.offline": "Keine Internetverbindung",
+  "common.deleteAll": "Alle löschen",
 
   // Time
   "time.now": "gerade eben",
@@ -228,6 +230,7 @@ const de: Record<string, string> = {
   "varsler.markedAllRead": "Alle Benachrichtigungen als gelesen markiert",
   "varsler.emptyTitle": "Noch keine Benachrichtigungen",
   "varsler.emptySub": "Wenn etwas mit deinen Gegenst\u00e4nden passiert, wird es hier angezeigt.",
+  "varsler.confirmDeleteAll": "Bist du sicher, dass du alle Benachrichtigungen l\u00f6schen m\u00f6chtest?",
 
   // Innstillinger
   "settings.title": "Einstellungen",

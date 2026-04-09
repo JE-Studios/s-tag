@@ -22,7 +22,9 @@ const sv: Record<string, string> = {
   "common.missing": "F\u00f6rsvunnen",
   "common.inactive": "Inaktiv",
   "common.active": "{0} aktiva",
-  "common.error": "N\u00e5got gick fel",
+  "common.error": "Något gick fel",
+  "common.offline": "Ingen internetanslutning",
+  "common.deleteAll": "Radera alla",
 
   // Time
   "time.now": "just nu",
@@ -228,6 +230,7 @@ const sv: Record<string, string> = {
   "varsler.markedAllRead": "Alla aviseringar markerade som l\u00e4sta",
   "varsler.emptyTitle": "Inga aviseringar \u00e4nnu",
   "varsler.emptySub": "N\u00e4r n\u00e5got h\u00e4nder med dina tillg\u00e5ngar visas det h\u00e4r.",
+  "varsler.confirmDeleteAll": "\u00c4r du s\u00e4ker p\u00e5 att du vill radera alla aviseringar?",
 
   // Innstillinger
   "settings.title": "Inst\u00e4llningar",
