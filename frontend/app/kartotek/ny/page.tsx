@@ -41,7 +41,6 @@ export default function NyGjenstandPage() {
   const [purchasedAt, setPurchasedAt] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
 
-  // Live sjekk av S-TAG-kode mot backend (debounced)
   useEffect(() => {
     const trimmed = stagCode.trim().toUpperCase();
     if (!trimmed) {
@@ -132,41 +131,68 @@ export default function NyGjenstandPage() {
   return (
     <>
       <TopBar showBack title="Ny gjenstand" />
-      <main className="pt-24 pb-40 px-6 max-w-2xl mx-auto">
+
+      {/* ── Branded header ── */}
+      <div className="bg-[#0f2a5c] pt-28 pb-14 px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-8"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-2xl mx-auto"
         >
-          <div className="w-14 h-14 rounded-2xl bg-[#0f2a5c] flex items-center justify-center mb-4">
-            <span
-              className="material-symbols-outlined text-white text-3xl"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              nfc
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <span
+                className="material-symbols-outlined text-white/80 text-xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                nfc
+              </span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+              Nasjonalt register
             </span>
           </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+          <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
             Registrer eiendel
           </h1>
-          <p className="text-slate-500 text-sm leading-relaxed">
-            Finn S-TAG-koden på emballasjen eller produktet og legg den inn
-            her. Koden knytter gjenstanden til din konto i det nasjonale
-            registeret.
+          <p className="text-white/50 text-sm leading-relaxed">
+            Skriv inn S-TAG-koden fra emballasjen. Koden knytter gjenstanden
+            til din konto i registeret.
           </p>
         </motion.div>
+      </div>
 
-        <form onSubmit={submit} className="space-y-4">
-          {/* S-TAG-kode */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+      {/* ── Form ── */}
+      <main className="px-6 pb-40 -mt-6 relative z-10">
+        <form onSubmit={submit} className="max-w-2xl mx-auto space-y-4">
+          {/* S-TAG-kode — overlapper navy/hvit */}
+          <div
+            className={`bg-white rounded-2xl p-5 shadow-lg space-y-3 border transition-colors ${
+              codeStatus === "available"
+                ? "border-emerald-300"
+                : codeStatus === "taken" || codeStatus === "invalid"
+                ? "border-red-300"
+                : "border-slate-200"
+            }`}
+          >
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center">
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                  codeStatus === "available"
+                    ? "bg-emerald-50"
+                    : "bg-slate-50"
+                }`}
+              >
                 <span
-                  className="material-symbols-outlined text-[#0f2a5c] text-lg"
+                  className={`material-symbols-outlined text-lg transition-colors ${
+                    codeStatus === "available"
+                      ? "text-emerald-600"
+                      : "text-[#0f2a5c]"
+                  }`}
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
-                  qr_code_2
+                  {codeStatus === "available" ? "verified" : "qr_code_2"}
                 </span>
               </div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -217,7 +243,7 @@ export default function NyGjenstandPage() {
           </div>
 
           {/* Grunnleggende */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <Input
               label="Navn"
               value={name}
@@ -273,7 +299,7 @@ export default function NyGjenstandPage() {
           </button>
 
           {showMore && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
               <Textarea
                 label="Beskrivelse"
                 value={description}
@@ -335,6 +361,26 @@ export default function NyGjenstandPage() {
             >
               {loading ? "Registrerer …" : "Registrer gjenstand"}
             </button>
+            <div className="flex items-center justify-center gap-4 mt-3">
+              <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                <span className="material-symbols-outlined text-[12px]">
+                  lock
+                </span>
+                Kryptert
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                <span className="material-symbols-outlined text-[12px]">
+                  verified_user
+                </span>
+                Nasjonalt register
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                <span className="material-symbols-outlined text-[12px]">
+                  check_circle
+                </span>
+                Gratis
+              </span>
+            </div>
           </div>
         </form>
       </main>
