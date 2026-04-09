@@ -41,7 +41,7 @@ function detectLocale(): Locale {
     const code = l.split("-")[0] as Locale;
     if (code in LOCALE_NAMES) return code;
   }
-  return "nb";
+  return "en";
 }
 
 const cache: Partial<Record<Locale, Dict>> = { nb };
