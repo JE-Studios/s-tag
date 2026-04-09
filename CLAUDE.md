@@ -89,11 +89,19 @@ mobile/           Capacitor wrapper
 | `NEXT_PUBLIC_API_URL` | Backend-URL (https://s-tag-production.up.railway.app) |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID (samme som backend) |
 
+### GitHub Actions (auto-deploy)
+
+Backend deployes automatisk til Railway via GitHub Actions (`.github/workflows/deploy-backend.yml`).
+Triggeren er push til main med endringer i `backend/**`. Workflowen bruker Railway CLI med `RAILWAY_TOKEN` GitHub Secret.
+
+Railway sin innebygde git-integrasjon fungerer IKKE pålitelig med squash merges (commit SHA finnes ikke i repo). Derfor bruker vi GitHub Actions i stedet.
+
+**GitHub Secret:** `RAILWAY_TOKEN` — Railway API-token med tilgang til prosjektet. Satt opp 2026-04-09.
+
 ### Deploy-notater
 
 - **Vercel** deployer automatisk ved push til main (alle filer)
-- **Railway** deployer automatisk ved push til main (kun backend/**-filer via watchPatterns)
-- Hvis Railway ikke auto-deployer: sjekk Deployments-fanen, eventuelt disconnect/reconnect branch i Settings → Source
+- **Railway** deployes via GitHub Actions ved push til main (kun backend/**-endringer)
 - Backend-kode har produksjons-fallbacks: APP_BASE_URL → Vercel-URL, API_BASE → Railway-URL
 - CORS tillater ALDRI wildcard * — kun eksplisitte domener + *.vercel.app preview-deploys
 
