@@ -2,7 +2,7 @@
 export const API_BASE: string =
   typeof window !== "undefined" && (window as unknown as { __STAG_API__?: string }).__STAG_API__
     ? ((window as unknown as { __STAG_API__: string }).__STAG_API__)
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    : process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === "production" ? "https://s-tag-production.up.railway.app" : "http://localhost:4000");
 
 const TOKEN_KEY = "stag_token";
 const CONSENT_VERSION = "2026-04";

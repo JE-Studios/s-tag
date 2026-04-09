@@ -1488,7 +1488,7 @@ const CRIIPTO_CLIENT_SECRET = process.env.CRIIPTO_CLIENT_SECRET || "";
 const APP_BASE_URL =
   process.env.APP_BASE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  "http://localhost:3000";
+  (IS_PRODUCTION ? "https://s-tag-ten.vercel.app" : "http://localhost:3000");
 const SIGNING_CALLBACK_PATH = "/eierskifte/signatur-callback";
 
 function criiptoConfigured() {
