@@ -2,8 +2,10 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
+const os = require("os");
 const db = require("./db");
 
+const compression = require("compression");
 const app = express();
 const PORT = process.env.PORT || 4000;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
@@ -40,19 +42,29 @@ app.use(
     credentials: false,
   })
 );
+app.use(compression());
 app.use(express.json({ limit: "2mb" }));
 
 // --- Auth helpers (pure Node crypto, ingen eksterne avhengigheter) ---
+// Async scrypt — blokkerer IKKE event loop under hashing (~100ms per kall).
 function hashPassword(password, salt) {
   const s = salt || crypto.randomBytes(16).toString("hex");
-  const hash = crypto.scryptSync(password, s, 64).toString("hex");
-  return `${s}:${hash}`;
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(password, s, 64, (err, derived) => {
+      if (err) return reject(err);
+      resolve(`${s}:${derived.toString("hex")}`);
+    });
+  });
 }
 
 function verifyPassword(password, stored) {
   const [salt, hash] = stored.split(":");
-  const test = crypto.scryptSync(password, salt, 64).toString("hex");
-  return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(test, "hex"));
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(password, salt, 64, (err, derived) => {
+      if (err) return reject(err);
+      resolve(crypto.timingSafeEqual(Buffer.from(hash, "hex"), derived));
+    });
+  });
 }
 
 function b64url(input) {
@@ -134,10 +146,12 @@ function publicUser(u) {
 const h = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // --- Rate limiting (in-memory token bucket pr. IP + rute) ---
-// Enkelt og uten ekstra avhengigheter. For multi-instance-deploy bør denne
-// byttes ut mot Redis, men dekker single-node Railway-oppsett vårt.
+// Hver cluster-worker har sin egen Map. For å holde den effektive grensen korrekt
+// deler vi max på antall workers. Ved 4 workers med max=20 → 5 per worker = 20 totalt.
 const rateLimitBuckets = new Map();
+const workerCount = parseInt(process.env.WORKERS, 10) || Math.min(os.cpus().length, 4);
 function rateLimit({ windowMs, max, name }) {
+  const perWorkerMax = Math.max(1, Math.ceil(max / (process.env.NODE_ENV === "production" ? workerCount : 1)));
   return (req, res, next) => {
     const ip =
       (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
@@ -151,7 +165,7 @@ function rateLimit({ windowMs, max, name }) {
       return next();
     }
     entry.count += 1;
-    if (entry.count > max) {
+    if (entry.count > perWorkerMax) {
       const retryAfter = Math.ceil((entry.start + windowMs - now) / 1000);
       res.setHeader("Retry-After", String(retryAfter));
       return res.status(429).json({ error: "For mange forespørsler. Prøv igjen om litt." });
@@ -214,7 +228,7 @@ app.post("/api/auth/register", authLimiter, h(async (req, res) => {
     id: crypto.randomUUID(),
     email: normalizedEmail,
     name: String(name).trim(),
-    passwordHash: hashPassword(password),
+    passwordHash: await hashPassword(password),
     plan: "free",
     createdAt: new Date().toISOString(),
     consentTerms: true,
@@ -237,7 +251,7 @@ app.post("/api/auth/login", authLimiter, h(async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: "E-post og passord er påkrevd" });
   const user = await db.findUserByEmail(String(email).trim().toLowerCase());
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return res.status(401).json({ error: "Feil e-post eller passord" });
   }
   const token = signToken({ userId: user.id });
@@ -388,7 +402,7 @@ app.post("/api/auth/oauth", authLimiter, h(async (req, res) => {
       name: String(displayName).trim(),
       // Tilfeldig passord-hash — brukeren logger kun inn via OAuth (eller
       // kan sette nytt passord senere via "glemt passord"-flyt).
-      passwordHash: hashPassword(crypto.randomBytes(32).toString("hex")),
+      passwordHash: await hashPassword(crypto.randomBytes(32).toString("hex")),
       plan: "free",
       createdAt: new Date().toISOString(),
       consentTerms: true,
@@ -417,10 +431,10 @@ app.post("/api/auth/password", requireAuth, h(async (req, res) => {
   if (newPassword.length > 256) return res.status(400).json({ error: "Passord for langt" });
   const user = await db.findUserById(req.userId);
   if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
-  if (!verifyPassword(oldPassword, user.passwordHash)) {
+  if (!(await verifyPassword(oldPassword, user.passwordHash))) {
     return res.status(401).json({ error: "Feil gammelt passord" });
   }
-  await db.updateUserPassword(req.userId, hashPassword(newPassword));
+  await db.updateUserPassword(req.userId, await hashPassword(newPassword));
   res.json({ ok: true });
 }));
 
@@ -528,7 +542,7 @@ app.post("/api/auth/reset-password", resetLimiter, h(async (req, res) => {
     });
   }
 
-  await db.updateUserPassword(entry.userId, hashPassword(newPassword));
+  await db.updateUserPassword(entry.userId, await hashPassword(newPassword));
   resetTokens.delete(token);
 
   res.json({ ok: true });
@@ -1676,7 +1690,6 @@ app.use((err, _req, res, _next) => {
 
 // --- Startup with cluster mode ---
 const cluster = require("cluster");
-const os = require("os");
 
 // Antall workers: bruk WORKERS env-var eller antall CPU-kjerner (maks 4 i prod for å spare RAM)
 const WORKERS = parseInt(process.env.WORKERS, 10) || Math.min(os.cpus().length, 4);
