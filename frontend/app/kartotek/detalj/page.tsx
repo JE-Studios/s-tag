@@ -7,14 +7,9 @@ import TopBar from "../../components/TopBar";
 import PhotoPicker from "../../components/PhotoPicker";
 import { items as itemsApi, ItemEvent, Item, API_BASE } from "../../lib/api";
 import { useToast } from "../../components/Toast";
+import { useTranslation } from "../../lib/i18n";
 
 const MapView = dynamic(() => import("../../sporing/MapView"), { ssr: false });
-
-const statusMeta = {
-  secured: { label: "Sikret", color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-500", icon: "verified" },
-  missing: { label: "Savnet", color: "text-red-600", bg: "bg-red-50", dot: "bg-red-500", icon: "warning" },
-  inactive: { label: "Inaktiv", color: "text-slate-600", bg: "bg-slate-100", dot: "bg-slate-400", icon: "pause_circle" },
-};
 
 const EVENT_ICON: Record<string, string> = {
   created: "add_circle",
@@ -25,16 +20,6 @@ const EVENT_ICON: Record<string, string> = {
   marked_found: "check_circle",
   transferred: "swap_horiz",
 };
-
-function timeAgo(iso: string) {
-  const d = new Date(iso);
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "nå nettopp";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min siden`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} t siden`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} d siden`;
-  return d.toLocaleDateString("nb-NO");
-}
 
 export default function ItemDetailPageWrapper() {
   return (
@@ -48,12 +33,29 @@ function ItemDetailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const toast = useToast();
+  const { t } = useTranslation();
   const id = searchParams.get("id") || "";
   const [item, setItem] = useState<Item | null>(null);
   const [events, setEvents] = useState<ItemEvent[]>([]);
   const [address, setAddress] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [photoEdit, setPhotoEdit] = useState<string | null>(null);
+
+  const statusMeta = {
+    secured: { label: t("common.secured"), color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-500", icon: "verified" },
+    missing: { label: t("common.missing"), color: "text-red-600", bg: "bg-red-50", dot: "bg-red-500", icon: "warning" },
+    inactive: { label: t("common.inactive"), color: "text-slate-600", bg: "bg-slate-100", dot: "bg-slate-400", icon: "pause_circle" },
+  };
+
+  const timeAgo = (iso: string) => {
+    const d = new Date(iso);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return t("time.now");
+    if (diff < 3600) return t("time.minutesAgo", Math.floor(diff / 60));
+    if (diff < 86400) return t("time.hoursAgo", Math.floor(diff / 3600));
+    if (diff < 604800) return t("time.daysAgo", Math.floor(diff / 86400));
+    return d.toLocaleDateString("nb-NO");
+  };
 
   const refreshItem = async () => {
     const data = await itemsApi.get(id);
@@ -96,7 +98,7 @@ function ItemDetailPage() {
       <>
         <TopBar showBack />
         <main className="pt-28 px-6 max-w-2xl mx-auto text-center">
-          <p className="text-slate-500">Fant ikke gjenstanden.</p>
+          <p className="text-slate-500">{t("detalj.notFound")}</p>
         </main>
       </>
     );
@@ -109,11 +111,11 @@ function ItemDetailPage() {
     try {
       if (isMissing) {
         await itemsApi.markFound(item.id);
-        toast.success("Markert som funnet");
+        toast.success(t("detalj.markedFound"));
       } else {
-        const msg = window.prompt("Valgfri melding til finnere:") || "";
+        const msg = window.prompt(t("detalj.lostPrompt")) || "";
         await itemsApi.markLost(item.id, msg);
-        toast.info("Markert som savnet — finnere kan nå varsle deg");
+        toast.info(t("detalj.markedMissing"));
       }
       await refreshItem();
       const ev = await itemsApi.events(id);
@@ -130,7 +132,7 @@ function ItemDetailPage() {
       const updated = await itemsApi.update(item.id, { photoUrl: newUrl || null } as Partial<Item>);
       setItem(updated);
       setPhotoEdit(null);
-      toast.success(newUrl ? "Bilde oppdatert" : "Bilde fjernet");
+      toast.success(newUrl ? t("detalj.photoUpdated") : t("detalj.photoRemoved"));
     } catch (err: unknown) {
       setPhotoEdit(null);
       const msg = err instanceof Error ? err.message : "Kunne ikke oppdatere bilde";
@@ -139,10 +141,10 @@ function ItemDetailPage() {
   };
 
   const removeItem = async () => {
-    if (!confirm(`Slette "${item.name}" permanent?`)) return;
+    if (!confirm(t("detalj.confirmDelete", item.name))) return;
     try {
       await itemsApi.remove(item.id);
-      toast.success("Gjenstanden er slettet");
+      toast.success(t("detalj.deleted"));
       router.replace("/kartotek");
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke slette");
@@ -180,7 +182,7 @@ function ItemDetailPage() {
         {isMissing && item.lostMessage && (
           <div className="mb-4 bg-red-50 border border-red-200 rounded-2xl p-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-red-700 mb-1">
-              Melding til finnere
+              {t("detalj.msgToFinders")}
             </p>
             <p className="text-sm text-red-900">{item.lostMessage}</p>
           </div>
@@ -217,18 +219,18 @@ function ItemDetailPage() {
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Sist sett
+                {t("detalj.lastSeen")}
               </p>
               <p className="text-slate-900 font-bold text-base">{address || item.lastSeen}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 text-xs text-slate-500 pt-3 border-t border-slate-100">
             <div>
-              <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">Bredde</span>
+              <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t("detalj.latitude")}</span>
               <span className="text-slate-700 font-mono">{item.lat.toFixed(5)}</span>
             </div>
             <div>
-              <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">Lengde</span>
+              <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t("detalj.longitude")}</span>
               <span className="text-slate-700 font-mono">{item.lng.toFixed(5)}</span>
             </div>
           </div>
@@ -236,31 +238,31 @@ function ItemDetailPage() {
 
         {/* Info */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm space-y-4">
-          <DetailRow icon="qr_code_2" label="Tag-ID" value={item.tagId} mono />
-          {item.brand && <DetailRow icon="sell" label="Merke" value={item.brand} />}
-          {item.model && <DetailRow icon="category" label="Modell" value={item.model} />}
-          {item.color && <DetailRow icon="palette" label="Farge" value={item.color} />}
+          <DetailRow icon="qr_code_2" label={t("detalj.tagId")} value={item.tagId} mono />
+          {item.brand && <DetailRow icon="sell" label={t("detalj.brand")} value={item.brand} />}
+          {item.model && <DetailRow icon="category" label={t("detalj.model")} value={item.model} />}
+          {item.color && <DetailRow icon="palette" label={t("detalj.color")} value={item.color} />}
           {item.serialNumber && (
-            <DetailRow icon="fingerprint" label="Serienummer" value={item.serialNumber} mono />
+            <DetailRow icon="fingerprint" label={t("detalj.serial")} value={item.serialNumber} mono />
           )}
           {item.valueNok && (
             <DetailRow
               icon="payments"
-              label="Verdi"
+              label={t("detalj.value")}
               value={`${new Intl.NumberFormat("nb-NO").format(item.valueNok)} kr`}
             />
           )}
           {item.purchasedAt && (
             <DetailRow
               icon="calendar_month"
-              label="Kjøpt"
+              label={t("detalj.purchased")}
               value={new Date(item.purchasedAt).toLocaleDateString("nb-NO")}
             />
           )}
           {item.description && (
             <div className="pt-3 border-t border-slate-100">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                Beskrivelse
+                {t("detalj.description")}
               </p>
               <p className="text-sm text-slate-700 leading-relaxed">{item.description}</p>
             </div>
@@ -268,11 +270,11 @@ function ItemDetailPage() {
           {item.publicCode && (
             <div className="pt-3 border-t border-slate-100">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                Offentlig funnet-kode
+                {t("detalj.publicCode")}
               </p>
               <p className="text-sm text-slate-900 font-mono">{item.publicCode}</p>
               <p className="text-[10px] text-slate-500 mt-1">
-                Del denne koden — finnere kan bruke den på /funnet/{item.publicCode} uten å logge inn.
+                {t("detalj.publicCodeHint", item.publicCode)}
               </p>
             </div>
           )}
@@ -292,13 +294,13 @@ function ItemDetailPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Innstøpt S-TAG
+                  {t("detalj.chip.title")}
                 </p>
                 <p className="text-slate-900 font-bold text-sm">
-                  {item.chipStatus === "active" && "Aktiv · live signal"}
-                  {item.chipStatus === "paired" && "Registrert · venter på signal"}
-                  {item.chipStatus === "lost" && "Mistet signal"}
-                  {item.chipStatus === "unpaired" && "Registrert"}
+                  {item.chipStatus === "active" && t("detalj.chip.active")}
+                  {item.chipStatus === "paired" && t("detalj.chip.paired")}
+                  {item.chipStatus === "lost" && t("detalj.chip.lost")}
+                  {item.chipStatus === "unpaired" && t("detalj.chip.unpaired")}
                 </p>
               </div>
             </div>
@@ -315,21 +317,20 @@ function ItemDetailPage() {
           {item.chipUid && (
             <div className="pt-3 border-t border-slate-100">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                S-TAG-kode
+                {t("detalj.chip.code")}
               </p>
               <p className="text-xs text-slate-700 font-mono break-all">{item.chipUid}</p>
             </div>
           )}
           <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
-            S-TAG-chipen er støpt inn i produktet av produsenten og kan ikke fjernes eller byttes.
-            Ved eierskifte overføres registreringen — chipen blir med gjenstanden.
+            {t("detalj.chip.info")}
           </p>
         </div>
 
         {/* Aktivitetslogg */}
         {events.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-3">Aktivitetslogg</h3>
+            <h3 className="font-bold text-slate-900 mb-3">{t("detalj.activityLog")}</h3>
             <div className="space-y-3">
               {events.map((ev) => (
                 <div key={ev.id} className="flex gap-3">
@@ -364,14 +365,14 @@ function ItemDetailPage() {
             <span className="material-symbols-outlined">
               {isMissing ? "check_circle" : "location_off"}
             </span>
-            <span className="text-xs font-bold">{isMissing ? "Marker som funnet" : "Marker som savnet"}</span>
+            <span className="text-xs font-bold">{isMissing ? t("detalj.markFound") : t("detalj.markMissing")}</span>
           </button>
           <button
             onClick={removeItem}
             className="bg-white border border-slate-200 text-slate-700 rounded-2xl py-4 px-4 flex flex-col items-center gap-2 shadow-sm hover:bg-slate-50 transition"
           >
             <span className="material-symbols-outlined">delete</span>
-            <span className="text-xs font-bold">Slett gjenstand</span>
+            <span className="text-xs font-bold">{t("detalj.deleteItem")}</span>
           </button>
         </div>
       </main>

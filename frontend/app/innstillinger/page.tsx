@@ -11,12 +11,14 @@ import {
   setGeoConsent,
 } from "../lib/use-geolocation";
 import { useToast } from "../components/Toast";
+import { useTranslation, LOCALE_NAMES, LOCALE_FLAGS, Locale } from "../lib/i18n";
 
 const SOFT_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function InnstillingerPage() {
   const { user, setUser, logout, refreshUser } = useAuth();
   const toast = useToast();
+  const { t, locale, setLocale } = useTranslation();
   const geo = useGeolocation(false);
 
   // Profil
@@ -61,9 +63,9 @@ export default function InnstillingerPage() {
         phone: phone.trim() || null,
       });
       setUser(updated);
-      toast.success("Profil oppdatert");
+      toast.success(t("settings.profileUpdated"));
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke lagre profil");
+      toast.error(err.message || t("common.error"));
     } finally {
       setSavingProfile(false);
     }
@@ -75,7 +77,7 @@ export default function InnstillingerPage() {
       await geo.request();
       const granted = getGeoConsent() === "granted";
       if (!granted) {
-        toast.error("Nettleseren tillot ikke posisjon");
+        toast.error(t("settings.locationDenied"));
         return;
       }
     } else {
@@ -85,9 +87,9 @@ export default function InnstillingerPage() {
     try {
       await authApi.updateProfile({ consentLocation: next });
       await refreshUser();
-      toast.success(next ? "Posisjon aktivert" : "Posisjon deaktivert");
+      toast.success(next ? t("settings.locationEnabled") : t("settings.locationDisabled"));
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke lagre samtykke");
+      toast.error(err.message || t("common.error"));
     }
   }
 
@@ -102,7 +104,7 @@ export default function InnstillingerPage() {
     try {
       await authApi.updateProfile({ [field]: next });
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke lagre");
+      toast.error(err.message || t("common.error"));
       await refreshUser();
     }
   }
@@ -110,7 +112,7 @@ export default function InnstillingerPage() {
   async function changePassword(e: FormEvent) {
     e.preventDefault();
     if (newPassword.length < 8) {
-      toast.error("Nytt passord må være minst 8 tegn");
+      toast.error(t("settings.passwordTooShort"));
       return;
     }
     setChangingPw(true);
@@ -118,9 +120,9 @@ export default function InnstillingerPage() {
       await authApi.changePassword(oldPassword, newPassword);
       setOldPassword("");
       setNewPassword("");
-      toast.success("Passord endret");
+      toast.success(t("settings.passwordChanged"));
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke endre passord");
+      toast.error(err.message || t("common.error"));
     } finally {
       setChangingPw(false);
     }
@@ -135,9 +137,9 @@ export default function InnstillingerPage() {
       a.download = `stag-eksport-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Data eksportert");
+      toast.success(t("settings.dataExported"));
     } catch (err: any) {
-      toast.error(err.message || "Eksport feilet");
+      toast.error(err.message || t("common.error"));
     }
   }
 
@@ -145,10 +147,10 @@ export default function InnstillingerPage() {
     setDeleting(true);
     try {
       await authApi.deleteAccount();
-      toast.success("Konto slettet");
+      toast.success(t("settings.accountDeleted"));
       logout();
     } catch (err: any) {
-      toast.error(err.message || "Sletting feilet");
+      toast.error(err.message || t("common.error"));
       setDeleting(false);
     }
   }
@@ -157,7 +159,7 @@ export default function InnstillingerPage() {
 
   return (
     <>
-      <TopBar showBack title="Innstillinger" />
+      <TopBar showBack title={t("settings.title")} />
       <main className="pt-24 pb-40 px-6 max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
@@ -165,10 +167,34 @@ export default function InnstillingerPage() {
           transition={{ duration: 0.5, ease: SOFT_EASE }}
           className="space-y-8"
         >
+          {/* Sprak */}
+          <SettingsCard title={t("settings.language")} subtitle={t("settings.languageSub")}>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(LOCALE_NAMES) as Locale[]).map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => {
+                    setLocale(code);
+                    authApi.updateProfile({ language: code }).catch(() => {});
+                  }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-bold transition ${
+                    locale === code
+                      ? "border-[#0f2a5c] bg-[#0f2a5c]/5 text-[#0f2a5c]"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <span className="text-lg">{LOCALE_FLAGS[code]}</span>
+                  {LOCALE_NAMES[code]}
+                </button>
+              ))}
+            </div>
+          </SettingsCard>
+
           {/* Profil */}
-          <SettingsCard title="Profil" subtitle="Dine kontaktopplysninger">
+          <SettingsCard title={t("settings.profile")} subtitle={t("settings.profileSub")}>
             <form onSubmit={saveProfile} className="space-y-4">
-              <Field label="Navn">
+              <Field label={t("common.name")}>
                 <input
                   type="text"
                   value={name}
@@ -177,7 +203,7 @@ export default function InnstillingerPage() {
                   className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
-              <Field label="E-post">
+              <Field label={t("common.email")}>
                 <input
                   type="email"
                   value={email}
@@ -186,7 +212,7 @@ export default function InnstillingerPage() {
                   className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
-              <Field label="Telefon (valgfritt)">
+              <Field label={t("settings.phoneOptional")}>
                 <input
                   type="tel"
                   value={phone}
@@ -200,42 +226,42 @@ export default function InnstillingerPage() {
                 disabled={savingProfile}
                 className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
               >
-                {savingProfile ? "Lagrer…" : "Lagre"}
+                {savingProfile ? t("common.saving") : t("common.save")}
               </button>
             </form>
           </SettingsCard>
 
           {/* Personvern og samtykker */}
           <SettingsCard
-            title="Personvern"
-            subtitle="Du kan når som helst trekke tilbake samtykke"
+            title={t("settings.privacy")}
+            subtitle={t("settings.privacySub")}
           >
             <div className="space-y-1">
               <ToggleRow
                 icon="my_location"
-                title="Posisjon"
-                body="Tillat S-TAG å bruke din posisjon til sporing, hjem-område og funnrapporter."
+                title={t("settings.location")}
+                body={t("settings.locationDesc")}
                 value={locationConsent}
                 onChange={toggleLocation}
               />
               <ToggleRow
                 icon="mail"
-                title="E-post-varsler"
-                body="Motta varsler på e-post ved statusendringer på dine gjenstander."
+                title={t("settings.emailAlerts")}
+                body={t("settings.emailAlertsDesc")}
                 value={notifyEmail}
                 onChange={(v) => toggleNotif("notifyEmail", v)}
               />
               <ToggleRow
                 icon="notifications_active"
-                title="Push-varsler"
-                body="Motta push-varsler i appen og på mobilenheten din."
+                title={t("settings.pushAlerts")}
+                body={t("settings.pushAlertsDesc")}
                 value={notifyPush}
                 onChange={(v) => toggleNotif("notifyPush", v)}
               />
               <ToggleRow
                 icon="campaign"
-                title="Markedsføring"
-                body="Tips, produktnyheter og tilbud fra S-TAG. Kan trekkes tilbake når som helst."
+                title={t("settings.marketing")}
+                body={t("settings.marketingDesc")}
                 value={notifyMarketing}
                 onChange={(v) => toggleNotif("notifyMarketing", v)}
               />
@@ -244,7 +270,7 @@ export default function InnstillingerPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (!confirm("Trekk tilbake posisjons-, e-post-, push- og markedsførings-samtykker?")) return;
+                  if (!confirm(t("settings.revokeConfirm"))) return;
                   try {
                     await authApi.updateProfile({
                       consentLocation: false,
@@ -258,39 +284,37 @@ export default function InnstillingerPage() {
                     setNotifyPush(false);
                     setNotifyMarketing(false);
                     await refreshUser();
-                    toast.success("Alle valgfrie samtykker er trukket tilbake");
+                    toast.success(t("settings.revokedAll"));
                   } catch (err: any) {
-                    toast.error(err.message || "Kunne ikke trekke tilbake samtykker");
+                    toast.error(err.message || t("common.error"));
                   }
                 }}
                 className="w-full py-2.5 rounded-2xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition"
               >
-                Trekk tilbake alle valgfrie samtykker
+                {t("settings.revokeAll")}
               </button>
               <p className="text-xs text-slate-500">
-                GDPR art. 7 nr. 3 — du kan trekke tilbake samtykke like enkelt som du ga det.
-                Dette påvirker ikke lovlighet av behandling før tilbake­kallingen.
+                {t("settings.gdprNote")}
               </p>
             </div>
             <div className="mt-2 text-xs text-slate-500 space-y-1">
               <p>
                 Se full{" "}
                 <Link href="/personvern" className="text-[#0f2a5c] font-bold underline">
-                  personvernerklæring
+                  {t("settings.privacyPolicy")}
                 </Link>{" "}
                 og{" "}
                 <Link href="/vilkar" className="text-[#0f2a5c] font-bold underline">
-                  brukervilkår
+                  {t("settings.termsOfService")}
                 </Link>
                 .
               </p>
               <p>
-                Samtykke-versjon: {user.consentVersion || "—"}
+                {t("settings.consentVersion", user.consentVersion || "—")}
                 {user.consentAcceptedAt && (
                   <>
                     {" "}
-                    · akseptert{" "}
-                    {new Date(user.consentAcceptedAt).toLocaleDateString("nb-NO")}
+                    · {t("settings.consentAccepted", new Date(user.consentAcceptedAt).toLocaleDateString("nb-NO"))}
                   </>
                 )}
               </p>
@@ -298,9 +322,9 @@ export default function InnstillingerPage() {
           </SettingsCard>
 
           {/* Passord */}
-          <SettingsCard title="Passord" subtitle="Endre påloggingspassord">
+          <SettingsCard title={t("settings.password")} subtitle={t("settings.passwordSub")}>
             <form onSubmit={changePassword} className="space-y-4">
-              <Field label="Nåværende passord">
+              <Field label={t("settings.currentPassword")}>
                 <input
                   type="password"
                   value={oldPassword}
@@ -310,7 +334,7 @@ export default function InnstillingerPage() {
                   className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
-              <Field label="Nytt passord">
+              <Field label={t("settings.newPassword")}>
                 <input
                   type="password"
                   value={newPassword}
@@ -326,7 +350,7 @@ export default function InnstillingerPage() {
                 disabled={changingPw || !oldPassword || !newPassword}
                 className="w-full py-3.5 rounded-2xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-50"
               >
-                {changingPw ? "Endrer…" : "Endre passord"}
+                {changingPw ? t("settings.changingPassword") : t("settings.changePassword")}
               </button>
             </form>
           </SettingsCard>
@@ -337,13 +361,13 @@ export default function InnstillingerPage() {
             className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-lg hover:bg-slate-700 transition flex items-center justify-center gap-3 shadow-lg"
           >
             <span className="material-symbols-outlined text-xl">logout</span>
-            Logg ut
+            {t("settings.logout")}
           </button>
 
           {/* Data-rettigheter (GDPR) */}
           <SettingsCard
-            title="Dine data"
-            subtitle="GDPR art. 15, 17 og 20 — innsyn, sletting og portabilitet"
+            title={t("settings.yourData")}
+            subtitle={t("settings.yourDataSub")}
           >
             <div className="space-y-3">
               <button
@@ -351,22 +375,19 @@ export default function InnstillingerPage() {
                 className="w-full py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">download</span>
-                Last ned alle mine data (.json)
+                {t("settings.exportData")}
               </button>
             </div>
           </SettingsCard>
 
           {/* Farlig sone */}
           <SettingsCard
-            title="Slett konto"
-            subtitle="Dette kan ikke angres"
+            title={t("settings.deleteAccount")}
+            subtitle={t("settings.deleteAccountSub")}
             tone="danger"
           >
             <p className="text-sm text-slate-600 mb-4 leading-relaxed">
-              All data knyttet til din bruker slettes permanent: gjenstander,
-              hendelseslogg, eierskifter og kontoopplysninger. S-TAG-chipene blir
-              værende i produktene, men eierskapet og sporingen til din konto
-              avsluttes. Handlingen kan ikke reverseres.
+              {t("settings.deleteWarning")}
             </p>
             <AnimatePresence mode="wait" initial={false}>
               {!confirmDelete ? (
@@ -378,7 +399,7 @@ export default function InnstillingerPage() {
                   onClick={() => setConfirmDelete(true)}
                   className="w-full py-3 rounded-2xl border border-red-200 text-red-700 font-bold hover:bg-red-50 transition"
                 >
-                  Slett kontoen min
+                  {t("settings.deleteConfirm")}
                 </motion.button>
               ) : (
                 <motion.div
@@ -389,7 +410,7 @@ export default function InnstillingerPage() {
                   className="space-y-2"
                 >
                   <p className="text-sm font-bold text-red-700 text-center">
-                    Er du helt sikker?
+                    {t("settings.deleteAreYouSure")}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -397,14 +418,14 @@ export default function InnstillingerPage() {
                       disabled={deleting}
                       className="py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition disabled:opacity-50"
                     >
-                      Avbryt
+                      {t("common.cancel")}
                     </button>
                     <button
                       onClick={deleteAccount}
                       disabled={deleting}
                       className="py-3 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-50"
                     >
-                      {deleting ? "Sletter…" : "Ja, slett"}
+                      {deleting ? t("settings.deleting") : t("settings.deleteYes")}
                     </button>
                   </div>
                 </motion.div>

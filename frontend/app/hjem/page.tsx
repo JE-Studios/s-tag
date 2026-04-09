@@ -6,22 +6,16 @@ import Image from "next/image";
 import TopBar from "../components/TopBar";
 import { useAuth } from "../lib/auth-context";
 import { stats as statsApi, Stats } from "../lib/api";
+import { useTranslation } from "../lib/i18n";
 
-const tiles = [
-  { href: "/sporing", label: "Sporing", sub: "Live posisjoner", icon: "location_on" },
-  { href: "/kartotek", label: "Kartotek", sub: "Registrerte eiendeler", icon: "inventory_2" },
-  { href: "/varsler", label: "Varsler", sub: "Oppdateringer", icon: "notifications" },
-  { href: "/eierskifte", label: "Eierskifte", sub: "Overfør eierskap", icon: "swap_horiz" },
-];
-
-
-function greeting() {
+function useGreeting() {
+  const { t } = useTranslation();
   const h = new Date().getHours();
-  if (h < 5) return "God natt";
-  if (h < 11) return "God morgen";
-  if (h < 17) return "God dag";
-  if (h < 22) return "God kveld";
-  return "God natt";
+  if (h < 5) return t("home.greeting.night");
+  if (h < 11) return t("home.greeting.morning");
+  if (h < 17) return t("home.greeting.day");
+  if (h < 22) return t("home.greeting.evening");
+  return t("home.greeting.night");
 }
 
 function formatKr(n: number) {
@@ -30,7 +24,16 @@ function formatKr(n: number) {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const greet = useGreeting();
   const [stats, setStats] = useState<Stats | null>(null);
+
+  const tiles = [
+    { href: "/sporing", label: t("home.tile.tracking"), sub: t("home.tile.trackingSub"), icon: "location_on" },
+    { href: "/kartotek", label: t("home.tile.registry"), sub: t("home.tile.registrySub"), icon: "inventory_2" },
+    { href: "/varsler", label: t("home.tile.alerts"), sub: t("home.tile.alertsSub"), icon: "notifications" },
+    { href: "/eierskifte", label: t("home.tile.transfer"), sub: t("home.tile.transferSub"), icon: "swap_horiz" },
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -89,7 +92,7 @@ export default function HomePage() {
           {user ? (
             <>
               <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                {greeting()}
+                {greet}
               </p>
               <h1 className="text-slate-900 text-3xl font-extrabold tracking-tight mt-1">
                 {firstName}
@@ -97,7 +100,7 @@ export default function HomePage() {
             </>
           ) : (
             <p className="text-slate-500 text-sm font-medium tracking-wide">
-              Sikring · Sporing · Eierskifte
+              {t("home.tagline")}
             </p>
           )}
         </motion.div>
@@ -113,16 +116,16 @@ export default function HomePage() {
             <div className="flex items-end justify-between mb-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">
-                  Din oversikt
+                  {t("home.overview")}
                 </p>
                 <p className="text-4xl font-extrabold tracking-tight mt-1">{stats.total}</p>
                 <p className="text-white/70 text-xs font-medium">
-                  {stats.total === 1 ? "registrert gjenstand" : "registrerte gjenstander"}
+                  {stats.total === 1 ? t("home.itemCount.one") : t("home.itemCount.other")}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">
-                  Samlet verdi
+                  {t("home.totalValue")}
                 </p>
                 <p className="text-xl font-extrabold mt-1">
                   {stats.totalValueNok > 0 ? `${formatKr(stats.totalValueNok)} kr` : "—"}
@@ -130,9 +133,9 @@ export default function HomePage() {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
-              <StatMini label="Sikret" value={stats.secured} tone="ok" />
-              <StatMini label="Savnet" value={stats.missing} tone={stats.missing > 0 ? "warn" : "ok"} />
-              <StatMini label="S-TAG aktiv" value={stats.chipActive} tone="ok" />
+              <StatMini label={t("home.stat.secured")} value={stats.secured} tone="ok" />
+              <StatMini label={t("home.stat.missing")} value={stats.missing} tone={stats.missing > 0 ? "warn" : "ok"} />
+              <StatMini label={t("home.stat.chipActive")} value={stats.chipActive} tone="ok" />
             </div>
           </motion.div>
         )}
@@ -150,8 +153,8 @@ export default function HomePage() {
               className="block bg-white border-2 border-dashed border-[#0f2a5c]/20 rounded-2xl p-6 text-center hover:border-[#0f2a5c]/50 transition"
             >
               <span className="material-symbols-outlined text-5xl text-[#0f2a5c]">add_circle</span>
-              <h3 className="font-extrabold text-xl text-slate-900 mt-2">Registrer din første gjenstand</h3>
-              <p className="text-slate-500 text-sm mt-1">Start med å legge til noe du vil sikre.</p>
+              <h3 className="font-extrabold text-xl text-slate-900 mt-2">{t("home.registerFirst")}</h3>
+              <p className="text-slate-500 text-sm mt-1">{t("home.registerFirstSub")}</p>
             </Link>
           </motion.div>
         )}
@@ -204,14 +207,14 @@ export default function HomePage() {
                       : "bg-red-50 text-red-700"
                   }`}
                 >
-                  ● {allSecured ? "Alle sikret" : `${stats!.missing} savnet`}
+                  ● {allSecured ? t("home.allSecured") : t("home.xMissing", stats!.missing)}
                 </span>
-                <span className="text-slate-500 text-xs">Live</span>
+                <span className="text-slate-500 text-xs">{t("home.live")}</span>
               </div>
               <p className="text-slate-700 text-sm leading-relaxed mb-4 font-medium">
                 {allSecured
-                  ? `Alle dine ${stats!.total} registrerte eiendeler er verifisert og sikret i det nasjonale registeret.`
-                  : `${stats!.missing} av ${stats!.total} eiendeler er markert som savnet. Sjekk Kartoteket for detaljer.`}
+                  ? t("home.allSecuredDesc", stats!.total)
+                  : t("home.missingDesc", stats!.missing, stats!.total)}
               </p>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 flex-grow bg-slate-200 rounded-full overflow-hidden">

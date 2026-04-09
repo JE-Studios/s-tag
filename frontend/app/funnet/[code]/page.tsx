@@ -6,11 +6,13 @@ import Link from "next/link";
 import Logo from "../../components/Logo";
 import { found, Item } from "../../lib/api";
 import { useToast } from "../../components/Toast";
+import { useTranslation } from "../../lib/i18n";
 
 export default function FunnetPage() {
   const params = useParams();
   const code = String(params?.code || "");
   const toast = useToast();
+  const { t } = useTranslation();
   const [item, setItem] = useState<Partial<Item> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export default function FunnetPage() {
         setItem(data);
       })
       .catch((err) => {
-        setError(err.message || "Ugyldig kode");
+        setError(err.message || t("found.invalidCode"));
       })
       .finally(() => setLoading(false));
   }, [code]);
@@ -37,7 +39,7 @@ export default function FunnetPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) {
-      toast.error("Skriv en melding til eieren");
+      toast.error(t("found.messageRequired"));
       return;
     }
     setSubmitting(true);
@@ -64,7 +66,7 @@ export default function FunnetPage() {
       });
       setDone(true);
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke sende");
+      toast.error(err.message || t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -79,12 +81,12 @@ export default function FunnetPage() {
       </header>
 
       <div className="px-6 max-w-xl mx-auto pb-20">
-        {loading && <p className="text-center text-slate-400 py-20">Laster …</p>}
+        {loading && <p className="text-center text-slate-400 py-20">{t("found.loading")}</p>}
 
         {error && (
           <div className="text-center py-20">
             <span className="material-symbols-outlined text-6xl text-slate-300">error</span>
-            <h1 className="mt-4 text-2xl font-bold text-slate-900">Ugyldig kode</h1>
+            <h1 className="mt-4 text-2xl font-bold text-slate-900">{t("found.invalidCode")}</h1>
             <p className="text-slate-500 mt-2">{error}</p>
           </div>
         )}
@@ -97,7 +99,7 @@ export default function FunnetPage() {
           >
             <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                Registrert i S-TAG
+                {t("found.registeredIn")}
               </p>
               <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
                 {item.name}
@@ -111,13 +113,13 @@ export default function FunnetPage() {
               {item.status === "missing" && (
                 <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-red-700 mb-1">
-                    Etterlyst av eier
+                    {t("found.wantedByOwner")}
                   </p>
                   {item.lostMessage ? (
                     <p className="text-sm text-red-900">{item.lostMessage}</p>
                   ) : (
                     <p className="text-sm text-red-900">
-                      Eieren savner denne gjenstanden. Hjelp dem ved å rapportere funnet nedenfor.
+                      {t("found.ownerMissing")}
                     </p>
                   )}
                 </div>
@@ -132,38 +134,36 @@ export default function FunnetPage() {
             </div>
 
             <form onSubmit={submit} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-              <h2 className="text-xl font-bold text-slate-900">Rapporter funn</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t("found.reportTitle")}</h2>
               <p className="text-sm text-slate-500 -mt-2">
-                Eieren varsles umiddelbart. Ditt navn og kontaktinfo er valgfritt, men hjelper med
-                å få gjenstanden tilbake.
+                {t("found.reportSub")}
               </p>
 
-              <Input label="Ditt navn (valgfritt)" value={finderName} onChange={setFinderName} placeholder="Fornavn Etternavn" />
+              <Input label={t("found.yourName")} value={finderName} onChange={setFinderName} placeholder="Fornavn Etternavn" />
               <Input
-                label="Kontakt (e-post/telefon, valgfritt)"
+                label={t("found.contact")}
                 value={finderContact}
                 onChange={setFinderContact}
                 placeholder="eksempel@epost.no"
               />
               <label className="block">
                 <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
-                  Melding *
+                  {t("found.message")} *
                 </span>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
                   rows={4}
-                  placeholder="Hvor og når fant du den? Hvor kan eieren hente den?"
+                  placeholder={t("found.messagePlaceholder")}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition resize-none"
                 />
               </label>
 
               <p className="text-[10px] text-slate-400 leading-relaxed">
-                Ved å sende samtykker du til at posisjonen din kan legges ved (hvis tilgjengelig) og
-                videresendes til eieren. Les vår{" "}
+                {t("found.consent")}{" "}
                 <Link href="/personvern" className="underline">
-                  personvernerklæring
+                  {t("found.privacyPolicy")}
                 </Link>
                 .
               </p>
@@ -173,7 +173,7 @@ export default function FunnetPage() {
                 disabled={submitting}
                 className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] shadow-lg shadow-[#0f2a5c]/20 transition disabled:opacity-50"
               >
-                {submitting ? "Sender …" : "Send rapport til eier"}
+                {submitting ? t("found.sending") : t("found.sendReport")}
               </button>
             </form>
           </motion.div>
@@ -188,15 +188,15 @@ export default function FunnetPage() {
             <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-emerald-600 text-5xl">check</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Takk!</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">{t("found.thankYou")}</h1>
             <p className="text-slate-500">
-              Eieren er varslet og kan ta kontakt med deg. Du er helten i dag.
+              {t("found.thankYouBody")}
             </p>
             <Link
               href="/"
               className="mt-6 inline-block py-3 px-6 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
             >
-              Tilbake til forsiden
+              {t("found.backToHome")}
             </Link>
           </motion.div>
         )}

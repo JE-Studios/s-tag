@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../lib/auth-context";
+import { useTranslation } from "../lib/i18n";
 import { auth as authApi, setToken } from "../lib/api";
 import { useGeolocation, setGeoConsent, getGeoConsent } from "../lib/use-geolocation";
 import OAuthButtons from "../components/OAuthButtons";
@@ -14,6 +15,7 @@ const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export default function RegisterPage() {
   const { setUser } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("form");
@@ -31,7 +33,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     if (!acceptTerms) {
-      setError("Du må godta vilkårene og personvernerklæringen for å opprette konto.");
+      setError(t("register.termsRequired"));
       return;
     }
     setLoading(true);
@@ -86,35 +88,35 @@ export default function RegisterPage() {
               <Image src="/logo.png" alt="S-TAG" width={120} height={86} className="object-contain" priority />
             </Link>
             <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl">
-              <h1 className="text-3xl font-black tracking-tight mb-2 text-center">Opprett konto</h1>
-              <p className="text-slate-500 text-center mb-8">Kom i gang med S-TAG på sekunder</p>
+              <h1 className="text-3xl font-black tracking-tight mb-2 text-center">{t("register.title")}</h1>
+              <p className="text-slate-500 text-center mb-8">{t("register.subtitle")}</p>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Navn</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{t("common.name")}</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                    placeholder="Ola Nordmann"
+                    placeholder={t("register.namePlaceholder")}
                     autoComplete="name"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">E-post</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{t("common.email")}</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                    placeholder="din@epost.no"
+                    placeholder={t("register.emailPlaceholder")}
                     autoComplete="email"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Passord</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{t("common.password")}</label>
                   <input
                     type="password"
                     required
@@ -122,7 +124,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                    placeholder="Minst 8 tegn"
+                    placeholder={t("register.passwordPlaceholder")}
                     autoComplete="new-password"
                   />
                 </div>
@@ -134,13 +136,13 @@ export default function RegisterPage() {
                     className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0f2a5c] focus:ring-[#0f2a5c]/30"
                   />
                   <span className="text-xs text-slate-600 leading-relaxed">
-                    Jeg har lest og godtar{" "}
+                    {t("register.acceptTerms")}{" "}
                     <Link href="/vilkar" target="_blank" className="text-[#0f2a5c] font-bold underline">
-                      brukervilkårene
+                      {t("register.termsLink")}
                     </Link>{" "}
-                    og{" "}
+                    {t("register.and")}{" "}
                     <Link href="/personvern" target="_blank" className="text-[#0f2a5c] font-bold underline">
-                      personvernerklæringen
+                      {t("register.privacyLink")}
                     </Link>
                     .
                   </span>
@@ -153,7 +155,7 @@ export default function RegisterPage() {
                   disabled={loading || !acceptTerms}
                   className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Oppretter..." : "Opprett konto"}
+                  {loading ? t("register.creating") : t("register.create")}
                 </button>
               </form>
               <div className="mt-6">
@@ -168,15 +170,15 @@ export default function RegisterPage() {
                 />
               </div>
               <p className="mt-6 text-center text-sm text-slate-500">
-                Har du allerede konto?{" "}
+                {t("register.hasAccount")}{" "}
                 <Link href="/logg-inn" className="text-[#0f2a5c] font-bold hover:underline">
-                  Logg inn
+                  {t("register.login")}
                 </Link>
               </p>
             </div>
             <p className="mt-6 text-center">
               <Link href="/" className="text-sm text-slate-400 hover:text-slate-600">
-                ← Tilbake til forsiden
+                {t("login.backToHome")}
               </Link>
             </p>
           </motion.div>
@@ -204,20 +206,19 @@ export default function RegisterPage() {
                 </span>
               </motion.div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-                Velkommen, {savedFirstName}!
+                {t("register.welcomeName", savedFirstName)}
               </h2>
               <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                For å kunne vise hjem-området ditt, spore eiendeler og hjelpe deg
-                å finne savnede ting, trenger S-TAG tilgang til posisjon.
+                {t("register.locationExplain")}
               </p>
               <ul className="text-left text-sm text-slate-600 space-y-2.5 mb-7 bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                <Benefit icon="home">Automatisk hjem-område uten å oppgi adresse</Benefit>
-                <Benefit icon="explore">Finn igjen savnede gjenstander raskere</Benefit>
-                <Benefit icon="lock">Din posisjon deles aldri med andre brukere</Benefit>
+                <Benefit icon="home">{t("register.benefitHome")}</Benefit>
+                <Benefit icon="explore">{t("register.benefitFind")}</Benefit>
+                <Benefit icon="lock">{t("register.benefitPrivacy")}</Benefit>
               </ul>
               {geo.error && (
                 <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs mb-4 text-left">
-                  Kunne ikke hente posisjon: {geo.error}. Du kan fortsatt bruke S-TAG.
+                  {t("register.locationError", geo.error || "")}
                 </div>
               )}
               <button
@@ -231,14 +232,14 @@ export default function RegisterPage() {
                 >
                   my_location
                 </span>
-                {geo.loading ? "Henter posisjon..." : "Tillat posisjon"}
+                {geo.loading ? t("register.gettingLocation") : t("register.allowLocation")}
               </button>
               <button
                 onClick={handleSkip}
                 disabled={geo.loading}
                 className="w-full py-3 rounded-xl text-slate-500 text-sm hover:text-slate-700 transition disabled:opacity-40"
               >
-                Ikke nå
+                {t("register.notNow")}
               </button>
             </div>
           </motion.div>

@@ -8,31 +8,44 @@ import type { Item } from "./MapView";
 import { items as itemsApi, API_BASE } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { setGeoConsent, getGeoConsent } from "../lib/use-geolocation";
+import { useTranslation } from "../lib/i18n";
 
-const MapView = dynamic(() => import("./MapView"), {
-  ssr: false,
-  loading: () => (
+function MapLoadingFallback() {
+  const { t } = useTranslation();
+  return (
     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
       <motion.span
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 1.6, repeat: Infinity }}
         className="text-slate-400 text-sm font-medium tracking-wider"
       >
-        LASTER KART…
+        {t("sporing.loadingMap")}
       </motion.span>
     </div>
-  ),
+  );
+}
+
+const MapView = dynamic(() => import("./MapView"), {
+  ssr: false,
+  loading: () => <MapLoadingFallback />,
 });
 
-const statusMeta: Record<Item["status"], { label: string; color: string; bg: string; dot: string }> = {
-  secured: { label: "Sikret", color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-500" },
-  missing: { label: "Savnet", color: "text-red-600", bg: "bg-red-50", dot: "bg-red-500" },
-  inactive: { label: "Inaktiv", color: "text-slate-600", bg: "bg-slate-100", dot: "bg-slate-400" },
+const statusColors: Record<Item["status"], { color: string; bg: string; dot: string }> = {
+  secured: { color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-500" },
+  missing: { color: "text-red-600", bg: "bg-red-50", dot: "bg-red-500" },
+  inactive: { color: "text-slate-600", bg: "bg-slate-100", dot: "bg-slate-400" },
 };
 
 export default function SporingPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const toast = useToast();
+
+  const statusMeta: Record<Item["status"], { label: string; color: string; bg: string; dot: string }> = {
+    secured: { label: t("common.secured"), ...statusColors.secured },
+    missing: { label: t("common.missing"), ...statusColors.missing },
+    inactive: { label: t("common.inactive"), ...statusColors.inactive },
+  };
   const [items, setItems] = useState<Item[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [address, setAddress] = useState<string>("");
@@ -44,11 +57,11 @@ export default function SporingPage() {
 
   const goToMyLocation = () => {
     if (getGeoConsent() === "denied") {
-      toast.error("Posisjon er deaktivert — aktiver det i innstillinger");
+      toast.error(t("sporing.posDisabled"));
       return;
     }
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("Posisjonstjenester er ikke tilgjengelig på denne enheten");
+      toast.error(t("sporing.posUnavailable"));
       return;
     }
     setLocating(true);
@@ -65,7 +78,7 @@ export default function SporingPage() {
       (err) => {
         setLocating(false);
         if (err.code === err.PERMISSION_DENIED) {
-          toast.error("Posisjon er avslått — aktiver det i innstillinger");
+          toast.error(t("sporing.posDenied"));
         } else {
           toast.error(err.message || "Kunne ikke hente posisjon");
         }
@@ -95,11 +108,11 @@ export default function SporingPage() {
       fetch(`${API_BASE}/api/geocode?lat=${item.lat}&lng=${item.lng}`)
         .then((r) => r.json())
         .then((j) => {
-          setAddress(j.display || "Ukjent adresse");
+          setAddress(j.display || t("sporing.unknownAddress"));
           setLoadingAddress(false);
         })
         .catch(() => {
-          setAddress("Adresse ikke tilgjengelig");
+          setAddress(t("sporing.addressUnavailable"));
           setLoadingAddress(false);
         });
     }, 400);
@@ -112,7 +125,7 @@ export default function SporingPage() {
     <>
       <TopBar
         showBack
-        title="Sporing"
+        title={t("sporing.title")}
         rightIcon="settings"
         onRightClick={() => router.push("/innstillinger")}
       />
@@ -164,7 +177,7 @@ export default function SporingPage() {
                         animate={{ opacity: [0.3, 1, 0.3] }}
                         transition={{ duration: 1.4, repeat: Infinity }}
                       >
-                        Henter adresse…
+                        {t("sporing.fetchingAddress")}
                       </motion.span>
                     ) : (
                       address
@@ -214,9 +227,9 @@ export default function SporingPage() {
         >
           <div className="glass p-4 rounded-2xl shadow-2xl border border-slate-200/60">
             <div className="flex items-center justify-between mb-3 px-1">
-              <h3 className="font-bold text-base text-slate-900">Dine gjenstander</h3>
+              <h3 className="font-bold text-base text-slate-900">{t("sporing.yourItems")}</h3>
               <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-1 rounded-md border border-slate-200 uppercase tracking-wider">
-                {items.length} aktive
+                {t("common.active", items.length)}
               </span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">

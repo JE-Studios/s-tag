@@ -4,10 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useAuth } from "../lib/auth-context";
+import { useTranslation } from "../lib/i18n";
 import OAuthButtons from "../components/OAuthButtons";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,36 +39,36 @@ export default function LoginPage() {
           <Image src="/logo.png" alt="S-TAG" width={120} height={86} className="object-contain" priority />
         </Link>
         <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl">
-          <h1 className="text-3xl font-black tracking-tight mb-2 text-center">Velkommen tilbake</h1>
-          <p className="text-slate-500 text-center mb-8">Logg inn på din S-TAG-konto</p>
+          <h1 className="text-3xl font-black tracking-tight mb-2 text-center">{t("login.welcome")}</h1>
+          <p className="text-slate-500 text-center mb-8">{t("login.subtitle")}</p>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">E-post</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{t("common.email")}</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                placeholder="din@epost.no"
+                placeholder={t("login.emailPlaceholder")}
                 autoComplete="email"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Passord</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{t("common.password")}</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                placeholder="••••••••"
+                placeholder={t("login.passwordPlaceholder")}
                 autoComplete="current-password"
               />
             </div>
             <div className="flex justify-end">
               <Link href="/glemt-passord" className="text-xs text-[#0f2a5c] font-semibold hover:underline">
-                Glemt passord?
+                {t("login.forgotPassword")}
               </Link>
             </div>
             {error && (
@@ -77,22 +79,22 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
             >
-              {loading ? "Logger inn..." : "Logg inn"}
+              {loading ? t("login.loggingIn") : t("login.login")}
             </button>
           </form>
           <div className="mt-6">
             <OAuthButtons mode="login" />
           </div>
           <p className="mt-6 text-center text-sm text-slate-500">
-            Har du ikke konto?{" "}
+            {t("login.noAccount")}{" "}
             <Link href="/registrer" className="text-[#0f2a5c] font-bold hover:underline">
-              Opprett konto
+              {t("login.createAccount")}
             </Link>
           </p>
         </div>
         <p className="mt-6 text-center">
           <Link href="/" className="text-sm text-slate-400 hover:text-slate-600">
-            ← Tilbake til forsiden
+            {t("login.backToHome")}
           </Link>
         </p>
       </motion.div>
