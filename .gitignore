@@ -29,7 +29,10 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-.claude/
+
+# Claude Code (personlige innstillinger — IKKE skills)
+.claude/settings.local.json
+.claude/settings.json
 
 # Logs
 *.log
