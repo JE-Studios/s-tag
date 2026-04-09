@@ -41,25 +41,25 @@ export default function LoginPage() {
           <p className="text-slate-500 text-center mb-8">Logg inn på din S-TAG-konto</p>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">E-post</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">E-post</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 placeholder="din@epost.no"
                 autoComplete="email"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">Passord</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Passord</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 placeholder="••••••••"
                 autoComplete="current-password"
               />
@@ -75,7 +75,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60"
+              className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
             >
               {loading ? "Logger inn..." : "Logg inn"}
             </button>

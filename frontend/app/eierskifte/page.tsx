@@ -308,7 +308,7 @@ function SellForm({
         <select
           value={itemId}
           onChange={(e) => setItemId(e.target.value)}
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
         >
           <option value="">— Velg —</option>
           {myItems.map((i) => (
@@ -361,7 +361,7 @@ function SellForm({
       </Step>
 
       <Step icon="person" n={2} title="Kjøper">
-        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
           Kjøpers e-post
         </label>
         <input
@@ -369,7 +369,7 @@ function SellForm({
           value={toEmail}
           onChange={(e) => setToEmail(e.target.value)}
           placeholder="kjoper@epost.no"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
         />
         <p className="mt-2 text-xs text-slate-500">
           Kjøper logger inn på S-TAG og bekrefter kjøpet
@@ -380,7 +380,7 @@ function SellForm({
       <Step icon="payments" n={3} title="Pris og betaling">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
               Avtalt pris (NOK)
             </label>
             <input
@@ -389,11 +389,11 @@ function SellForm({
               value={salePriceNok}
               onChange={(e) => setSalePriceNok(e.target.value)}
               placeholder="0"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 text-slate-900 font-mono focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-mono focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
             />
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
               Betalingsmåte
             </label>
             <input
@@ -401,7 +401,7 @@ function SellForm({
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
               placeholder="Vipps, bank, kontant…"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
             />
           </div>
         </div>
@@ -413,7 +413,7 @@ function SellForm({
           onChange={(e) => setConditionNote(e.target.value)}
           rows={4}
           placeholder="F.eks. 'Lett bruk, mindre riper på ramma, service utført 2025'"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none resize-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none resize-none transition"
         />
         <label className="mt-4 flex items-start gap-3 cursor-pointer select-none">
           <input
@@ -435,18 +435,12 @@ function SellForm({
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           placeholder="Eventuell melding til kjøper (valgfritt)"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none resize-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none resize-none transition"
         />
       </Step>
 
       {/* Kontrakt-sammendrag */}
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.55, ease: SOFT_EASE }}
-        className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm"
-      >
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <h3 className="text-xs font-black tracking-widest uppercase text-[#0f2a5c] mb-3">
           Salgskontrakt · versjon 2026-04
         </h3>
@@ -488,13 +482,12 @@ function SellForm({
             .
           </span>
         </label>
-      </motion.div>
+      </div>
 
-      <motion.button
-        whileTap={{ scale: 0.98 }}
+      <button
         type="submit"
         disabled={busy || !accept}
-        className="w-full bg-[#0f2a5c] hover:bg-[#1a3d7c] text-white py-5 rounded-2xl font-bold text-base shadow-xl shadow-[#0f2a5c]/20 flex items-center justify-center gap-3 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full bg-[#0f2a5c] hover:bg-[#1a3d7c] text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-[#0f2a5c]/20 flex items-center justify-center gap-3 transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <span
           className="material-symbols-outlined"
@@ -507,7 +500,7 @@ function SellForm({
           : bankidReady
           ? "Opprett og signer med BankID"
           : "Opprett og send til kjøper"}
-      </motion.button>
+      </button>
     </form>
   );
 }
@@ -524,13 +517,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, ease: SOFT_EASE }}
-      className="space-y-3"
-    >
+    <section className="space-y-3">
       <div className="flex items-center gap-3 mb-1">
         <div className="w-8 h-8 rounded-xl bg-[#0f2a5c]/5 border border-[#0f2a5c]/10 flex items-center justify-center">
           <span className="material-symbols-outlined text-[#0f2a5c] text-lg">
@@ -543,7 +530,7 @@ function Step({
         </h2>
       </div>
       <div className="pl-11">{children}</div>
-    </motion.section>
+    </section>
   );
 }
 
@@ -743,7 +730,7 @@ function TransferCard({
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-3">
-      <dt className="w-28 shrink-0 text-[10px] font-bold uppercase tracking-widest text-slate-400 pt-1">
+      <dt className="w-28 shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-500 pt-1">
         {label}
       </dt>
       <dd className="flex-1 text-slate-700">{children}</dd>
