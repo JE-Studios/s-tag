@@ -331,6 +331,15 @@ export default function InnstillingerPage() {
             </form>
           </SettingsCard>
 
+          {/* Logg ut */}
+          <button
+            onClick={logout}
+            className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-lg hover:bg-slate-700 transition flex items-center justify-center gap-3 shadow-lg"
+          >
+            <span className="material-symbols-outlined text-xl">logout</span>
+            Logg ut
+          </button>
+
           {/* Data-rettigheter (GDPR) */}
           <SettingsCard
             title="Dine data"
@@ -343,13 +352,6 @@ export default function InnstillingerPage() {
               >
                 <span className="material-symbols-outlined text-base">download</span>
                 Last ned alle mine data (.json)
-              </button>
-              <button
-                onClick={logout}
-                className="w-full py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">logout</span>
-                Logg ut
               </button>
             </div>
           </SettingsCard>
