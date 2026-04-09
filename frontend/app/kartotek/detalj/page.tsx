@@ -199,7 +199,7 @@ function ItemDetailPage() {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-6 rounded-3xl overflow-hidden border border-slate-200 shadow-sm h-56"
+          className="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-56"
         >
           <MapView items={[item]} selectedId={item.id} />
         </motion.div>

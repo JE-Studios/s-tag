@@ -174,7 +174,7 @@ export default function InnstillingerPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
               <Field label="E-post">
@@ -183,7 +183,7 @@ export default function InnstillingerPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
               <Field label="Telefon (valgfritt)">
@@ -192,13 +192,13 @@ export default function InnstillingerPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+47 …"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60"
+                className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
               >
                 {savingProfile ? "Lagrer…" : "Lagre"}
               </button>
@@ -263,7 +263,7 @@ export default function InnstillingerPage() {
                     toast.error(err.message || "Kunne ikke trekke tilbake samtykker");
                   }
                 }}
-                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition"
+                className="w-full py-2.5 rounded-2xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition"
               >
                 Trekk tilbake alle valgfrie samtykker
               </button>
@@ -307,7 +307,7 @@ export default function InnstillingerPage() {
                   onChange={(e) => setOldPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
               <Field label="Nytt passord">
@@ -318,13 +318,13 @@ export default function InnstillingerPage() {
                   required
                   minLength={8}
                   autoComplete="new-password"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                 />
               </Field>
               <button
                 type="submit"
                 disabled={changingPw || !oldPassword || !newPassword}
-                className="w-full py-3 rounded-xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-60"
+                className="w-full py-3.5 rounded-2xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-50"
               >
                 {changingPw ? "Endrer…" : "Endre passord"}
               </button>
@@ -339,14 +339,14 @@ export default function InnstillingerPage() {
             <div className="space-y-3">
               <button
                 onClick={exportData}
-                className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">download</span>
                 Last ned alle mine data (.json)
               </button>
               <button
                 onClick={logout}
-                className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">logout</span>
                 Logg ut
@@ -374,7 +374,7 @@ export default function InnstillingerPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setConfirmDelete(true)}
-                  className="w-full py-3 rounded-xl border border-red-200 text-red-700 font-bold hover:bg-red-50 transition"
+                  className="w-full py-3 rounded-2xl border border-red-200 text-red-700 font-bold hover:bg-red-50 transition"
                 >
                   Slett kontoen min
                 </motion.button>
@@ -393,14 +393,14 @@ export default function InnstillingerPage() {
                     <button
                       onClick={() => setConfirmDelete(false)}
                       disabled={deleting}
-                      className="py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition disabled:opacity-60"
+                      className="py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition disabled:opacity-50"
                     >
                       Avbryt
                     </button>
                     <button
                       onClick={deleteAccount}
                       disabled={deleting}
-                      className="py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-60"
+                      className="py-3 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-50"
                     >
                       {deleting ? "Sletter…" : "Ja, slett"}
                     </button>
@@ -427,11 +427,7 @@ function SettingsCard({
   tone?: "danger";
 }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.5, ease: SOFT_EASE }}
+    <section
       className={`bg-white rounded-2xl border p-6 ${
         tone === "danger" ? "border-red-100" : "border-slate-200"
       }`}
@@ -448,14 +444,14 @@ function SettingsCard({
       )}
       {!subtitle && <div className="mb-5" />}
       {children}
-    </motion.section>
+    </section>
   );
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">
+      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
         {label}
       </label>
       {children}

@@ -108,7 +108,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="w-full max-w-md mb-8 bg-gradient-to-br from-[#0a1e3d] via-[#0f2a5c] to-[#132f5e] text-white rounded-3xl p-6 shadow-xl shadow-[#0a1e3d]/30"
+            className="w-full max-w-md mb-8 bg-gradient-to-br from-[#0a1e3d] via-[#0f2a5c] to-[#132f5e] text-white rounded-2xl p-6 shadow-xl shadow-[#0a1e3d]/30"
           >
             <div className="flex items-end justify-between mb-4">
               <div>
@@ -147,7 +147,7 @@ export default function HomePage() {
           >
             <Link
               href="/kartotek/ny"
-              className="block bg-white border-2 border-dashed border-[#0f2a5c]/20 rounded-3xl p-6 text-center hover:border-[#0f2a5c]/50 transition"
+              className="block bg-white border-2 border-dashed border-[#0f2a5c]/20 rounded-2xl p-6 text-center hover:border-[#0f2a5c]/50 transition"
             >
               <span className="material-symbols-outlined text-5xl text-[#0f2a5c]">add_circle</span>
               <h3 className="font-extrabold text-xl text-slate-900 mt-2">Registrer din første gjenstand</h3>

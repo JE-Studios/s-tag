@@ -26,7 +26,7 @@ function ResetForm() {
       return;
     }
     if (password.length < 8) {
-      setError("Passord must be at least 8 characters");
+      setError("Passord må være minst 8 tegn");
       return;
     }
     setLoading(true);
@@ -44,7 +44,7 @@ function ResetForm() {
   if (!token) {
     return (
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center">
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl text-center">
           <div className="w-20 h-20 mx-auto rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-5">
             <span
               className="material-symbols-outlined text-red-500 text-4xl"
@@ -61,7 +61,7 @@ function ResetForm() {
           </p>
           <Link
             href="/glemt-passord"
-            className="inline-block px-8 py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition"
+            className="inline-block px-8 py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20"
           >
             Be om ny lenke
           </Link>
@@ -84,7 +84,7 @@ function ResetForm() {
           <Link href="/" className="flex items-center justify-center mb-8">
             <Image src="/logo.png" alt="S-TAG" width={120} height={86} className="object-contain" priority />
           </Link>
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl">
+          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl">
             <h1 className="text-3xl font-black tracking-tight mb-2 text-center">
               Nytt passord
             </h1>
@@ -93,7 +93,7 @@ function ResetForm() {
             </p>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
                   Nytt passord
                 </label>
                 <input
@@ -102,13 +102,13 @@ function ResetForm() {
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                   placeholder="Minst 8 tegn"
                   autoComplete="new-password"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
                   Bekreft passord
                 </label>
                 <input
@@ -117,7 +117,7 @@ function ResetForm() {
                   minLength={8}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                  className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                   placeholder="Skriv passordet igjen"
                   autoComplete="new-password"
                 />
@@ -130,7 +130,7 @@ function ResetForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60"
+                className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
               >
                 {loading ? "Lagrer..." : "Lagre nytt passord"}
               </button>
@@ -145,7 +145,7 @@ function ResetForm() {
           transition={{ duration: 0.6, ease: EASE }}
           className="w-full max-w-md"
         >
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center">
+          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl text-center">
             <motion.div
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -167,7 +167,7 @@ function ResetForm() {
             </p>
             <Link
               href="/logg-inn"
-              className="inline-block px-8 py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition"
+              className="inline-block px-8 py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20"
             >
               Logg inn
             </Link>
