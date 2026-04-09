@@ -95,7 +95,7 @@ export default function FunnetPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 mb-6 shadow-sm">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
                 Registrert i S-TAG
               </p>
@@ -131,7 +131,7 @@ export default function FunnetPage() {
               )}
             </div>
 
-            <form onSubmit={submit} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <form onSubmit={submit} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
               <h2 className="text-xl font-bold text-slate-900">Rapporter funn</h2>
               <p className="text-sm text-slate-500 -mt-2">
                 Eieren varsles umiddelbart. Ditt navn og kontaktinfo er valgfritt, men hjelper med
@@ -171,7 +171,7 @@ export default function FunnetPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1e40af] transition disabled:opacity-50"
+                className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] shadow-lg shadow-[#0f2a5c]/20 transition disabled:opacity-50"
               >
                 {submitting ? "Sender …" : "Send rapport til eier"}
               </button>
@@ -183,7 +183,7 @@ export default function FunnetPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-16 bg-white border border-slate-200 rounded-3xl p-8"
+            className="text-center py-16 bg-white border border-slate-200 rounded-2xl p-8"
           >
             <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-emerald-600 text-5xl">check</span>
@@ -194,7 +194,7 @@ export default function FunnetPage() {
             </p>
             <Link
               href="/"
-              className="mt-6 inline-block py-3 px-6 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
+              className="mt-6 inline-block py-3 px-6 rounded-2xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition"
             >
               Tilbake til forsiden
             </Link>

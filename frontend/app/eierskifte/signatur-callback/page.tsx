@@ -22,7 +22,7 @@ function CallbackShell() {
     <>
       <TopBar showBack title="BankID-signering" />
       <main className="pt-28 px-6 max-w-md mx-auto pb-40">
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center">
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl text-center">
           <div className="mx-auto w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#0f2a5c] animate-spin mb-6" />
           <p className="text-slate-500">Laster…</p>
         </div>
@@ -89,7 +89,7 @@ function SignaturCallbackInner() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: APPLE_EASE }}
-          className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center"
+          className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl text-center"
         >
           <AnimatePresence mode="wait">
             {phase === "working" && (

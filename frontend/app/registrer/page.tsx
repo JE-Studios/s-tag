@@ -85,7 +85,7 @@ export default function RegisterPage() {
             <Link href="/" className="flex items-center justify-center mb-8">
               <Image src="/logo.png" alt="S-TAG" width={120} height={86} className="object-contain" priority />
             </Link>
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl">
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl">
               <h1 className="text-3xl font-black tracking-tight mb-2 text-center">Opprett konto</h1>
               <p className="text-slate-500 text-center mb-8">Kom i gang med S-TAG på sekunder</p>
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -189,7 +189,7 @@ export default function RegisterPage() {
             transition={{ duration: 0.6, ease: EASE }}
             className="w-full max-w-md"
           >
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center">
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl text-center">
               <motion.div
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

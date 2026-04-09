@@ -95,7 +95,7 @@ export default function VarslerPage() {
         )}
 
         {!loading && list.length === 0 && (
-          <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-3xl">
+          <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-2xl">
             <span className="material-symbols-outlined text-6xl text-slate-300">notifications_off</span>
             <h3 className="mt-4 text-xl font-bold text-slate-700">Ingen varsler enda</h3>
             <p className="text-slate-500 mt-1 text-sm">

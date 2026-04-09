@@ -172,8 +172,8 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-lg transition"
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-lg transition"
               >
                 <div className="w-14 h-14 rounded-2xl bg-[#0f2a5c] flex items-center justify-center mb-5">
                   <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -208,7 +208,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
+                transition={{ duration: 0.5 }}
                 className="text-center"
               >
                 <div className="text-6xl font-black text-[#0f2a5c]/10 mb-2">{step.n}</div>

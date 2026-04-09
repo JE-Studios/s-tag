@@ -36,7 +36,7 @@ export default function LoginPage() {
         <Link href="/" className="flex items-center justify-center mb-8">
           <Image src="/logo.png" alt="S-TAG" width={120} height={86} className="object-contain" priority />
         </Link>
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl">
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl">
           <h1 className="text-3xl font-black tracking-tight mb-2 text-center">Velkommen tilbake</h1>
           <p className="text-slate-500 text-center mb-8">Logg inn på din S-TAG-konto</p>
           <form onSubmit={handleSubmit} className="space-y-5">

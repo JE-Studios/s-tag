@@ -233,7 +233,7 @@ function EmptyState({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: SOFT_EASE }}
-      className="text-center py-16 px-6 bg-slate-50 rounded-3xl border border-dashed border-slate-200"
+      className="text-center py-16 px-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200"
     >
       <div className="mx-auto w-16 h-16 rounded-2xl bg-white flex items-center justify-center mb-4 border border-slate-200">
         <span className="material-symbols-outlined text-3xl text-slate-400">
@@ -308,7 +308,7 @@ function SellForm({
         <select
           value={itemId}
           onChange={(e) => setItemId(e.target.value)}
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
         >
           <option value="">— Velg —</option>
           {myItems.map((i) => (
@@ -369,7 +369,7 @@ function SellForm({
           value={toEmail}
           onChange={(e) => setToEmail(e.target.value)}
           placeholder="kjoper@epost.no"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
         />
         <p className="mt-2 text-xs text-slate-500">
           Kjøper logger inn på S-TAG og bekrefter kjøpet
@@ -389,7 +389,7 @@ function SellForm({
               value={salePriceNok}
               onChange={(e) => setSalePriceNok(e.target.value)}
               placeholder="0"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-mono focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
             />
           </div>
           <div>
@@ -401,7 +401,7 @@ function SellForm({
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
               placeholder="Vipps, bank, kontant…"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none transition"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
             />
           </div>
         </div>
@@ -413,7 +413,7 @@ function SellForm({
           onChange={(e) => setConditionNote(e.target.value)}
           rows={4}
           placeholder="F.eks. 'Lett bruk, mindre riper på ramma, service utført 2025'"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none resize-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 resize-none transition"
         />
         <label className="mt-4 flex items-start gap-3 cursor-pointer select-none">
           <input
@@ -435,7 +435,7 @@ function SellForm({
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           placeholder="Eventuell melding til kjøper (valgfritt)"
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#0f2a5c] focus:border-transparent outline-none resize-none transition"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 resize-none transition"
         />
       </Step>
 
@@ -487,7 +487,7 @@ function SellForm({
       <button
         type="submit"
         disabled={busy || !accept}
-        className="w-full bg-[#0f2a5c] hover:bg-[#1a3d7c] text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-[#0f2a5c]/20 flex items-center justify-center gap-3 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full bg-[#0f2a5c] hover:bg-[#1a3d7c] text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-[#0f2a5c]/20 flex items-center justify-center gap-3 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span
           className="material-symbols-outlined"
@@ -683,7 +683,7 @@ function TransferCard({
                   <button
                     onClick={acceptAsBuyer}
                     disabled={busy}
-                    className="w-full py-3 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60"
+                    className="w-full py-3 rounded-2xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-50"
                   >
                     {busy
                       ? "Jobber…"
@@ -697,7 +697,7 @@ function TransferCard({
                   <button
                     onClick={() => signWithBankId("seller")}
                     disabled={busy}
-                    className="w-full py-3 rounded-xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <span className="material-symbols-outlined text-base">
                       fingerprint
@@ -710,7 +710,7 @@ function TransferCard({
                   <button
                     onClick={() => signWithBankId("buyer")}
                     disabled={busy}
-                    className="w-full py-3 rounded-xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl border border-[#0f2a5c] text-[#0f2a5c] font-bold hover:bg-[#0f2a5c]/5 transition disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <span className="material-symbols-outlined text-base">
                       fingerprint
