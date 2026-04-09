@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import TopBar from "../../components/TopBar";
 import PhotoPicker from "../../components/PhotoPicker";
 import { items as itemsApi, API_BASE } from "../../lib/api";
@@ -286,19 +286,38 @@ export default function NyGjenstandPage() {
             onClick={() => setShowMore(!showMore)}
             className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-slate-400 hover:text-slate-600 transition"
           >
-            <span
+            <motion.span
+              animate={{ rotate: showMore ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
               className="material-symbols-outlined text-sm"
-              style={{
-                transform: showMore ? "rotate(180deg)" : "none",
-                transition: "transform 0.2s",
-              }}
             >
               expand_more
-            </span>
+            </motion.span>
             {showMore ? "Skjul detaljer" : "Flere detaljer"}
           </button>
 
+          <AnimatePresence initial={false}>
           {showMore && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{
+                height: "auto",
+                opacity: 1,
+                transition: {
+                  height: { duration: 0.4, ease: [0.32, 0.72, 0, 1] },
+                  opacity: { duration: 0.3, delay: 0.08 },
+                },
+              }}
+              exit={{
+                height: 0,
+                opacity: 0,
+                transition: {
+                  height: { duration: 0.3, ease: [0.32, 0.72, 0, 1] },
+                  opacity: { duration: 0.15 },
+                },
+              }}
+              style={{ overflow: "hidden" }}
+            >
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
               <Textarea
                 label="Beskrivelse"
@@ -350,7 +369,9 @@ export default function NyGjenstandPage() {
                 />
               </div>
             </div>
+            </motion.div>
           )}
+          </AnimatePresence>
 
           {/* Registrer */}
           <div className="sticky bottom-24 pt-4">

@@ -55,7 +55,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               initial={{ opacity: 0, x: 40, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
               className={`pointer-events-auto flex items-start gap-3 border rounded-xl px-4 py-3 shadow-lg backdrop-blur-sm ${COLORS[t.kind]}`}
             >
               <span className="material-symbols-outlined text-xl mt-0.5">{ICON[t.kind]}</span>
