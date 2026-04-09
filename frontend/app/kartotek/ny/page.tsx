@@ -361,26 +361,6 @@ export default function NyGjenstandPage() {
             >
               {loading ? "Registrerer …" : "Registrer gjenstand"}
             </button>
-            <div className="flex items-center justify-center gap-4 mt-3">
-              <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-                <span className="material-symbols-outlined text-[12px]">
-                  lock
-                </span>
-                Kryptert
-              </span>
-              <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-                <span className="material-symbols-outlined text-[12px]">
-                  verified_user
-                </span>
-                Nasjonalt register
-              </span>
-              <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-                <span className="material-symbols-outlined text-[12px]">
-                  check_circle
-                </span>
-                Gratis
-              </span>
-            </div>
           </div>
         </form>
       </main>
