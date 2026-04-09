@@ -9,7 +9,8 @@ S-TAG er et nasjonalt register for sikring og sporing av eiendeler. Chip-basert 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind v4, react-leaflet, framer-motion, zod
 - **Backend:** Express 5, PostgreSQL (pg), JWT auth (HS256, scrypt), dotenv, cors
 - **Mobile:** Capacitor (Android ferdig, iOS venter)
-- **Deploy:** Vercel (frontend), Railway (backend, venter)
+- **E-post:** Resend (midlertidig avsender: onboarding@resend.dev — bytt til s-tag.no etter DNS-verifisering)
+- **Deploy:** Vercel (frontend), Railway (backend)
 - **Repo:** github.com/JE-Studios/s-tag (privat, branch-beskyttet)
 
 ## Filstruktur
@@ -59,6 +60,58 @@ mobile/           Capacitor wrapper
 - Skriv commit-meldinger på norsk
 - En PR per feature/bugfix
 - Beskriv HVA du endret og HVORFOR i PR-beskrivelsen
+
+## Produksjonsmiljø
+
+| Tjeneste | URL | Plattform |
+|----------|-----|-----------|
+| Frontend | https://s-tag-ten.vercel.app | Vercel (auto-deploy fra main) |
+| Backend  | https://s-tag-production.up.railway.app | Railway (auto-deploy fra main, root: /backend) |
+| Database | PostgreSQL | Railway (tilkoblet via DATABASE_URL) |
+
+### Railway miljøvariabler (backend)
+
+| Variabel | Beskrivelse |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string (satt av Railway) |
+| `JWT_SECRET` | Hemmelig nøkkel for JWT-signering |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID (165312962290-...apps.googleusercontent.com) |
+| `RESEND_API_KEY` | API-nøkkel for Resend e-posttjeneste |
+| `APP_BASE_URL` | Frontend-URL for lenker i e-post (https://s-tag-ten.vercel.app) |
+| `CORS_ORIGINS` | Valgfri: ekstra tillatte CORS-domener (kommaseparert, IKKE bruk wildcard *) |
+| `FEEDBACK_FROM` | Valgfri: avsender-adresse for e-post (default: onboarding@resend.dev) |
+
+### Vercel miljøvariabler (frontend)
+
+| Variabel | Beskrivelse |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Backend-URL (https://s-tag-production.up.railway.app) |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID (samme som backend) |
+
+### Deploy-notater
+
+- **Vercel** deployer automatisk ved push til main (alle filer)
+- **Railway** deployer automatisk ved push til main (kun backend/**-filer via watchPatterns)
+- Hvis Railway ikke auto-deployer: sjekk Deployments-fanen, eventuelt disconnect/reconnect branch i Settings → Source
+- Backend-kode har produksjons-fallbacks: APP_BASE_URL → Vercel-URL, API_BASE → Railway-URL
+- CORS tillater ALDRI wildcard * — kun eksplisitte domener + *.vercel.app preview-deploys
+
+### Kjente begrensninger
+
+- **Resend e-post:** onboarding@resend.dev kan kun sende til kontoeier (eliah.slette@gmail.com). Andre brukere får ikke e-post. Krever domene-verifisering i Resend med eget domene.
+- **Apple-innlogging:** Ikke konfigurert. Krever Apple Developer Program ($99/år) + ID-verifisering.
+- **Branch protection:** Ruleset ID 14845507. Må slås av midlertidig for merge, deretter aktiveres igjen.
+
+### GitHub branch protection (automatisering)
+
+```bash
+# Deaktiver
+gh api repos/JE-Studios/s-tag/rulesets/14845507 --method PUT --field enforcement=disabled
+# Merge PR
+gh pr merge <nr> --squash --delete-branch
+# Aktiver
+gh api repos/JE-Studios/s-tag/rulesets/14845507 --method PUT --field enforcement=active
+```
 
 ## Lokal utvikling
 

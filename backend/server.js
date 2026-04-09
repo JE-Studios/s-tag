@@ -14,7 +14,8 @@ if (!JWT_SECRET) {
 }
 const TOKEN_TTL_DAYS = 30;
 
-// CORS: default-liste dekker Vercel + lokal dev + Capacitor. Override via CORS_ORIGINS.
+// CORS: default-liste dekker Vercel + lokal dev + Capacitor. Utvid via CORS_ORIGINS.
+// VIKTIG: wildcard "*" er IKKE tillatt — bruk eksplisitte domener.
 const DEFAULT_ORIGINS = [
   "https://s-tag-ten.vercel.app",
   "http://localhost:3000",
@@ -22,15 +23,16 @@ const DEFAULT_ORIGINS = [
   "capacitor://localhost",
   "http://localhost",
 ];
-const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
-  : DEFAULT_ORIGINS;
+const extraOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim()).filter((s) => s && s !== "*")
+  : [];
+const corsOrigins = [...DEFAULT_ORIGINS, ...extraOrigins];
 app.use(
   cors({
     origin: (origin, cb) => {
       // Ingen origin (mobil-app, curl, health checks) → tillat
       if (!origin) return cb(null, true);
-      if (corsOrigins.includes("*") || corsOrigins.includes(origin)) return cb(null, true);
+      if (corsOrigins.includes(origin)) return cb(null, true);
       // Tillat alle *.vercel.app preview-deploys
       if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return cb(null, true);
       return cb(new Error(`CORS blocked: ${origin}`));

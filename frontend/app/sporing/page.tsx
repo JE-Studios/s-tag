@@ -7,7 +7,7 @@ import TopBar from "../components/TopBar";
 import type { Item } from "./MapView";
 import { items as itemsApi, API_BASE } from "../lib/api";
 import { useToast } from "../components/Toast";
-import { setGeoConsent } from "../lib/use-geolocation";
+import { setGeoConsent, getGeoConsent } from "../lib/use-geolocation";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
@@ -43,6 +43,10 @@ export default function SporingPage() {
   const [locating, setLocating] = useState(false);
 
   const goToMyLocation = () => {
+    if (getGeoConsent() === "denied") {
+      toast.error("Posisjon er deaktivert — aktiver det i innstillinger");
+      return;
+    }
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       toast.error("Posisjonstjenester er ikke tilgjengelig på denne enheten");
       return;
