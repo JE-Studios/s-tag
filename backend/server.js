@@ -908,7 +908,7 @@ app.post("/api/found/:code/report", foundLimiter, h(async (req, res) => {
 // ============================================================================
 
 const FEEDBACK_INBOX = process.env.FEEDBACK_INBOX || "marianne@s-tag.no";
-const FEEDBACK_FROM = process.env.FEEDBACK_FROM || "S-TAG Support <marianne@s-tag.no>";
+const FEEDBACK_FROM = process.env.FEEDBACK_FROM || "S-TAG <onboarding@resend.dev>";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const FEEDBACK_KINDS = new Set(["bug", "feature", "question", "other"]);
 
