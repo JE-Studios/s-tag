@@ -191,6 +191,7 @@ Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
 - Kjøpe domene og verifisere i Resend -> e-post fungerer for alle brukere
 - Apple Developer Program -> Sign in with Apple
 - Mobilapp: Capacitor er satt opp, Android bygger, iOS venter på Apple Developer Program
+- Tracking-hardware: klient må velge chip-teknologi (se "Tracking-hardware" under Kjente begrensninger)
 
 ## Kjente begrensninger
 
@@ -201,6 +202,7 @@ Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
 - **Samtykke-toggles:** Posisjon fungerer (styrer GPS). E-post-varsler, push-varsler og markedsføring lagres i DB men har ingen effekt ennå (mangler domene/push-infra). Ikke fjern dem — de er GDPR-samtykke som trengs når funksjonene implementeres.
 - **i18n:** Alle UI-strenger bruker `t()` fra `app/lib/i18n.tsx`. Nye sider MÅ bruke `useTranslation()` og legge nye nøkler i ALLE 7 oversettelsesfiler. Norsk (nb) er fallback — manglende nøkler i andre språk viser norsk tekst.
 - **Cookies:** Appen bruker kun localStorage (token, språk, geo-samtykke) — ingen cookies, ingen analytics, ingen cookie-banner nødvendig.
+- **Tracking-hardware:** Klienten (startup) har IKKE valgt chip ennå. Backenden er klar (`POST /api/chip/ping` tar imot GPS, batteri, telemetri med HMAC-signering), men det finnes ingen fysisk tracker. Aktuelle alternativer: **LTE-M/NB-IoT** (mobilnett, fungerer overalt med dekning, krever eSIM + IoT-abonnement ~20-50 kr/mnd), **BLE** (kort rekkevidde, avhengig av crowd-nettverk som Apple Find My), eller **hybrid**. For S-TAGs bruksområder (jakker, sykler, ski i Norge) er LTE-M mest aktuelt for sporing overalt. Ikke implementer chip-spesifikk kode før klienten har valgt teknologi.
 
 ## Lokal utvikling
 
