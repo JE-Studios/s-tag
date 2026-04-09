@@ -78,7 +78,7 @@ export default function KontaktPage() {
           </p>
 
           {/* Direkte kontakt */}
-          <section className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm mb-8">
+          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-8">
             <h2 className="font-bold text-slate-900 mb-4">Direkte kontakt</h2>
             <div className="space-y-3">
               <ContactRow
@@ -101,7 +101,7 @@ export default function KontaktPage() {
           </section>
 
           {/* Kontaktskjema */}
-          <section className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm mb-8">
+          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-8">
             <h2 className="font-bold text-slate-900 mb-1">Send oss en melding</h2>
             <p className="text-xs text-slate-500 mb-5">
               {user
@@ -162,7 +162,7 @@ export default function KontaktPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Ola Nordmann"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                        className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                       />
                     </Field>
                     <Field label="E-post">
@@ -172,7 +172,7 @@ export default function KontaktPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="din@epost.no"
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                        className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                       />
                     </Field>
                   </>
@@ -185,7 +185,7 @@ export default function KontaktPage() {
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Kort oppsummering"
                     maxLength={200}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                   />
                 </Field>
 
@@ -197,7 +197,7 @@ export default function KontaktPage() {
                     rows={6}
                     maxLength={4000}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition resize-none"
+                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition resize-none"
                   />
                   <p className="mt-1 text-[11px] text-slate-400 text-right">
                     {message.length} / 4000
@@ -207,7 +207,7 @@ export default function KontaktPage() {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="w-full py-3.5 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60"
+                  className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
                 >
                   {sending ? "Sender …" : "Send melding"}
                 </button>

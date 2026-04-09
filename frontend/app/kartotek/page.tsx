@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import TopBar from "../components/TopBar";
 import { items as itemsApi, Item } from "../lib/api";
@@ -31,19 +31,6 @@ const FILTER_LABEL: Record<FilterKey, string> = {
   unpaired: "Venter på signal",
 };
 
-const container: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.12 } },
-};
-
-const itemAnim: Variants = {
-  hidden: { opacity: 0, x: -20 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const },
-  },
-};
 
 export default function KartotekPage() {
   const [list, setList] = useState<RegistryItem[]>([]);
@@ -104,10 +91,10 @@ export default function KartotekPage() {
           transition={{ duration: 0.6 }}
           className="mb-6"
         >
-          <h1 className="font-extrabold text-5xl text-slate-900 leading-tight mb-2 tracking-tight">
+          <h1 className="font-extrabold text-4xl text-slate-900 leading-tight mb-2 tracking-tight">
             Kartotek
           </h1>
-          <p className="text-slate-500 text-lg font-medium">
+          <p className="text-slate-500 text-sm font-medium">
             Administrer dine registrerte eiendeler og{" "}
             <span className="s-tag-wordmark text-sm">
               S<span className="accent">-</span>TAG
@@ -209,13 +196,13 @@ export default function KartotekPage() {
           </div>
         )}
 
-        <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
+        <div className="space-y-4">
           {filtered.map((item) => {
             const badge = statusBadge[item.status];
             const isMissing = item.status === "missing";
             const isInactive = item.status === "inactive";
             return (
-              <motion.div key={item.id} variants={itemAnim} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+              <div key={item.id}>
                 <Link
                   href={`/kartotek/detalj?id=${item.id}`}
                   className={`block bg-white rounded-2xl p-5 flex items-center gap-5 shadow-sm transition-all duration-300 hover:shadow-lg border group ${
@@ -254,19 +241,14 @@ export default function KartotekPage() {
                     chevron_right
                   </span>
                 </Link>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
       </main>
 
       {/* Sticky CTA */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 20 }}
-        className="fixed bottom-28 left-0 w-full px-6 z-40 pointer-events-none"
-      >
+      <div className="fixed bottom-28 left-0 w-full px-6 z-40 pointer-events-none">
         <div className="max-w-md mx-auto">
           <Link
             href="/kartotek/ny"
@@ -278,7 +260,7 @@ export default function KartotekPage() {
             Registrer ny gjenstand
           </Link>
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }

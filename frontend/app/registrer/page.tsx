@@ -90,38 +90,38 @@ export default function RegisterPage() {
               <p className="text-slate-500 text-center mb-8">Kom i gang med S-TAG på sekunder</p>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">Navn</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Navn</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                     placeholder="Ola Nordmann"
                     autoComplete="name"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">E-post</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">E-post</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                     placeholder="din@epost.no"
                     autoComplete="email"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold tracking-wider uppercase text-slate-600 mb-2">Passord</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Passord</label>
                   <input
                     type="password"
                     required
                     minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 outline-none transition"
+                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
                     placeholder="Minst 8 tegn"
                     autoComplete="new-password"
                   />
@@ -151,7 +151,7 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={loading || !acceptTerms}
-                  className="w-full py-3.5 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20 disabled:cursor-not-allowed"
                 >
                   {loading ? "Oppretter..." : "Opprett konto"}
                 </button>
@@ -223,7 +223,7 @@ export default function RegisterPage() {
               <button
                 onClick={handleAllow}
                 disabled={geo.loading}
-                className="w-full py-3.5 rounded-xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-60 mb-2 flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20 mb-2 flex items-center justify-center gap-2"
               >
                 <span
                   className="material-symbols-outlined text-base"

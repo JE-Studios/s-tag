@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { motion, type Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import TopBar from "../components/TopBar";
 import { useAuth } from "../lib/auth-context";
@@ -14,20 +14,6 @@ const tiles = [
   { href: "/eierskifte", label: "Eierskifte", sub: "Overfør eierskap", icon: "swap_horiz" },
 ];
 
-const container: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
-};
-
-const itemAnim: Variants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const },
-  },
-};
 
 function greeting() {
   const h = new Date().getHours();
@@ -170,14 +156,9 @@ export default function HomePage() {
           </motion.div>
         )}
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="w-full max-w-md grid grid-cols-2 gap-5"
-        >
+        <div className="w-full max-w-md grid grid-cols-2 gap-5">
           {tiles.map((tile) => (
-            <motion.div key={tile.label} variants={itemAnim}>
+            <div key={tile.label}>
               <Link
                 href={tile.href}
                 className="aspect-square bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 group transition-all duration-300 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:bg-white hover:border-[#0f2a5c]/20"
@@ -203,9 +184,9 @@ export default function HomePage() {
                   </span>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {user && hasItems && (
           <motion.div
