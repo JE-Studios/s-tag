@@ -5,6 +5,7 @@ import Link from "next/link";
 import TopBar from "../components/TopBar";
 import { notifications as notificationsApi, Notification } from "../lib/api";
 import { useToast } from "../components/Toast";
+import { useTranslation } from "../lib/i18n";
 
 const KIND_ICON: Record<string, string> = {
   item_lost: "location_off",
@@ -22,20 +23,21 @@ const KIND_COLOR: Record<string, string> = {
   welcome: "text-violet-700 bg-violet-50",
 };
 
-function timeAgo(iso: string) {
-  const d = new Date(iso);
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "nå nettopp";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min siden`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} t siden`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} d siden`;
-  return d.toLocaleDateString("nb-NO");
-}
-
 export default function VarslerPage() {
+  const { t } = useTranslation();
   const [list, setList] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+
+  function timeAgo(iso: string) {
+    const d = new Date(iso);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return t("time.now");
+    if (diff < 3600) return t("time.minutesAgo", Math.floor(diff / 60));
+    if (diff < 86400) return t("time.hoursAgo", Math.floor(diff / 3600));
+    if (diff < 604800) return t("time.daysAgo", Math.floor(diff / 86400));
+    return d.toLocaleDateString("nb-NO");
+  }
 
   const load = async () => {
     try {
@@ -56,7 +58,7 @@ export default function VarslerPage() {
     try {
       await notificationsApi.markAllRead();
       setList((l) => l.map((n) => ({ ...n, readAt: n.readAt || new Date().toISOString() })));
-      toast.success("Alle varsler markert som lest");
+      toast.success(t("varsler.markedAllRead"));
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke oppdatere");
     }
@@ -66,7 +68,7 @@ export default function VarslerPage() {
 
   return (
     <>
-      <TopBar showBack title="Varsler" />
+      <TopBar showBack title={t("varsler.title")} />
       <main className="pt-28 pb-40 px-6 max-w-2xl mx-auto">
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -75,9 +77,9 @@ export default function VarslerPage() {
           className="mb-6 flex items-end justify-between gap-4"
         >
           <div>
-            <h1 className="font-extrabold text-4xl text-slate-900 tracking-tight mb-1">Varsler</h1>
+            <h1 className="font-extrabold text-4xl text-slate-900 tracking-tight mb-1">{t("varsler.title")}</h1>
             <p className="text-slate-500 text-sm font-medium">
-              {unread > 0 ? `${unread} uleste varsler` : "Alle varsler er lest"}
+              {unread > 0 ? t("varsler.unread", unread) : t("varsler.allRead")}
             </p>
           </div>
           {unread > 0 && (
@@ -85,21 +87,21 @@ export default function VarslerPage() {
               onClick={markAllRead}
               className="text-xs font-bold text-[#0f2a5c] hover:underline whitespace-nowrap"
             >
-              Marker alle som lest
+              {t("varsler.markAllRead")}
             </button>
           )}
         </motion.section>
 
         {loading && (
-          <div className="py-20 text-center text-slate-400">Laster …</div>
+          <div className="py-20 text-center text-slate-400">{t("common.loading")}</div>
         )}
 
         {!loading && list.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-2xl">
             <span className="material-symbols-outlined text-6xl text-slate-300">notifications_off</span>
-            <h3 className="mt-4 text-xl font-bold text-slate-700">Ingen varsler enda</h3>
+            <h3 className="mt-4 text-xl font-bold text-slate-700">{t("varsler.emptyTitle")}</h3>
             <p className="text-slate-500 mt-1 text-sm">
-              Når noe skjer med gjenstandene dine vises det her.
+              {t("varsler.emptySub")}
             </p>
           </div>
         )}

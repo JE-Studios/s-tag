@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "../lib/i18n";
 import { auth } from "../lib/api";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 function ResetForm() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
 
@@ -22,11 +24,11 @@ function ResetForm() {
     e.preventDefault();
     setError(null);
     if (password !== confirm) {
-      setError("Passordene stemmer ikke overens");
+      setError(t("reset.mismatch"));
       return;
     }
     if (password.length < 8) {
-      setError("Passord må være minst 8 tegn");
+      setError(t("reset.tooShort"));
       return;
     }
     setLoading(true);
@@ -34,7 +36,7 @@ function ResetForm() {
       await auth.resetPassword(token, password);
       setDone(true);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Noe gikk galt";
+      const message = err instanceof Error ? err.message : t("common.error");
       setError(message);
     } finally {
       setLoading(false);
@@ -54,16 +56,16 @@ function ResetForm() {
             </span>
           </div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-            Ugyldig lenke
+            {t("reset.invalidLink")}
           </h2>
           <p className="text-slate-500 text-sm leading-relaxed mb-6">
-            Denne lenken mangler en gyldig token. Be om en ny tilbakestilling.
+            {t("reset.invalidBody")}
           </p>
           <Link
             href="/glemt-passord"
             className="inline-block px-8 py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20"
           >
-            Be om ny lenke
+            {t("reset.requestNew")}
           </Link>
         </div>
       </div>
@@ -86,15 +88,15 @@ function ResetForm() {
           </Link>
           <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-xl">
             <h1 className="text-3xl font-black tracking-tight mb-2 text-center">
-              Nytt passord
+              {t("reset.title")}
             </h1>
             <p className="text-slate-500 text-center mb-8">
-              Velg et nytt passord for kontoen din.
+              {t("reset.subtitle")}
             </p>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
-                  Nytt passord
+                  {t("reset.newPassword")}
                 </label>
                 <input
                   type="password"
@@ -103,13 +105,13 @@ function ResetForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                  placeholder="Minst 8 tegn"
+                  placeholder={t("reset.minLength")}
                   autoComplete="new-password"
                 />
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
-                  Bekreft passord
+                  {t("reset.confirmPassword")}
                 </label>
                 <input
                   type="password"
@@ -118,7 +120,7 @@ function ResetForm() {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                  placeholder="Skriv passordet igjen"
+                  placeholder={t("reset.confirmPlaceholder")}
                   autoComplete="new-password"
                 />
               </div>
@@ -132,7 +134,7 @@ function ResetForm() {
                 disabled={loading}
                 className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
               >
-                {loading ? "Lagrer..." : "Lagre nytt passord"}
+                {loading ? t("reset.saving") : t("reset.save")}
               </button>
             </form>
           </div>
@@ -160,16 +162,16 @@ function ResetForm() {
               </span>
             </motion.div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
-              Passord oppdatert
+              {t("reset.doneTitle")}
             </h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
-              Passordet ditt er endret. Du kan nå logge inn med det nye passordet.
+              {t("reset.doneBody")}
             </p>
             <Link
               href="/logg-inn"
               className="inline-block px-8 py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20"
             >
-              Logg inn
+              {t("login.login")}
             </Link>
           </div>
         </motion.div>
@@ -179,6 +181,7 @@ function ResetForm() {
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-slate-50 to-white">
       <Suspense
@@ -189,7 +192,7 @@ export default function ResetPasswordPage() {
               transition={{ duration: 1.4, repeat: Infinity }}
               className="text-slate-400 text-sm"
             >
-              Laster...
+              {t("common.loading")}
             </motion.span>
           </div>
         }

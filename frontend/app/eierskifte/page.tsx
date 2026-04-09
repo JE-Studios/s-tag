@@ -12,6 +12,7 @@ import {
 } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { useAuth } from "../lib/auth-context";
+import { useTranslation } from "../lib/i18n";
 
 const APPLE_EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const SOFT_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -21,6 +22,7 @@ type Tab = "sell" | "inbox";
 export default function EierskiftePage() {
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useTranslation();
 
   const [tab, setTab] = useState<Tab>("sell");
   const [myItems, setMyItems] = useState<Item[]>([]);
@@ -37,11 +39,11 @@ export default function EierskiftePage() {
   }, []);
 
   const sent = useMemo(
-    () => all.filter((t) => t.fromUserId === user?.id),
+    () => all.filter((tr) => tr.fromUserId === user?.id),
     [all, user?.id]
   );
   const received = useMemo(
-    () => all.filter((t) => user?.email && t.toEmail === user.email),
+    () => all.filter((tr) => user?.email && tr.toEmail === user.email),
     [all, user?.email]
   );
 
@@ -69,11 +71,11 @@ export default function EierskiftePage() {
           className="mb-8"
         >
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
-            Eierskifte
+            {t("transfer.title")}
           </h1>
           <p className="text-slate-500 font-medium">
-            Digital salgskontrakt regulert av kjøpsloven. Begge parter bekrefter
-            {bankidReady ? " og signerer med BankID" : " kontrakten i appen"}.
+            {t("transfer.subtitle")}
+            {bankidReady ? t("transfer.subtitleBankid") : t("transfer.subtitleEnd")}.
           </p>
         </motion.section>
 
@@ -86,17 +88,17 @@ export default function EierskiftePage() {
         >
           {(
             [
-              { id: "sell", label: "Selg", count: sent.length },
-              { id: "inbox", label: "Mottatte", count: received.length },
+              { id: "sell", label: t("transfer.tabSell"), count: sent.length },
+              { id: "inbox", label: t("transfer.tabInbox"), count: received.length },
             ] as const
-          ).map((t) => (
+          ).map((tb) => (
             <button
-              key={t.id}
+              key={tb.id}
               type="button"
-              onClick={() => setTab(t.id)}
+              onClick={() => setTab(tb.id)}
               className="flex-1 py-2.5 px-4 rounded-lg font-bold text-sm transition-colors relative z-10"
             >
-              {tab === t.id && (
+              {tab === tb.id && (
                 <motion.div
                   layoutId="eierskifte-tab"
                   className="absolute inset-0 bg-white rounded-lg shadow-sm border border-slate-200"
@@ -105,19 +107,19 @@ export default function EierskiftePage() {
               )}
               <span
                 className={`relative flex items-center justify-center gap-2 ${
-                  tab === t.id ? "text-slate-900" : "text-slate-500"
+                  tab === tb.id ? "text-slate-900" : "text-slate-500"
                 }`}
               >
-                {t.label}
-                {t.count > 0 && (
+                {tb.label}
+                {tb.count > 0 && (
                   <span
                     className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                      tab === t.id
+                      tab === tb.id
                         ? "bg-[#0f2a5c] text-white"
                         : "bg-slate-200 text-slate-600"
                     }`}
                   >
-                    {t.count}
+                    {tb.count}
                   </span>
                 )}
               </span>
@@ -147,21 +149,21 @@ export default function EierskiftePage() {
                       window.location.href = authUrl;
                       return;
                     } catch (e: any) {
-                      toast.error(e.message || "Kunne ikke starte BankID");
+                      toast.error(e.message || t("common.error"));
                     }
                   } else {
-                    toast.success("Kontrakt sendt til kjøper");
+                    toast.success(t("transfer.sentSuccess"));
                   }
                 }}
               />
               {sent.length > 0 && (
                 <div className="mt-12">
-                  <SectionHeader>Sendte kontrakter</SectionHeader>
+                  <SectionHeader>{t("transfer.sentContracts")}</SectionHeader>
                   <div className="space-y-3">
-                    {sent.map((t) => (
+                    {sent.map((tr) => (
                       <TransferCard
-                        key={t.id}
-                        transfer={t}
+                        key={tr.id}
+                        transfer={tr}
                         side="seller"
                         bankidReady={bankidReady}
                         onAction={refresh}
@@ -182,15 +184,15 @@ export default function EierskiftePage() {
               {received.length === 0 ? (
                 <EmptyState
                   icon="inbox"
-                  title="Ingen mottatte kontrakter"
-                  body="Når noen overfører en S-TAG-merket gjenstand til deg, vises salgskontrakten her."
+                  title={t("transfer.emptyInbox")}
+                  body={t("transfer.emptyInboxSub")}
                 />
               ) : (
                 <div className="space-y-3">
-                  {received.map((t) => (
+                  {received.map((tr) => (
                     <TransferCard
-                      key={t.id}
-                      transfer={t}
+                      key={tr.id}
+                      transfer={tr}
                       side="buyer"
                       bankidReady={bankidReady}
                       onAction={refresh}
@@ -258,6 +260,7 @@ function SellForm({
   onCreated: (transferId: string) => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation();
   const [itemId, setItemId] = useState("");
   const [toEmail, setToEmail] = useState("");
   const [salePriceNok, setSalePriceNok] = useState<string>("");
@@ -277,11 +280,11 @@ function SellForm({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!itemId) return toast.error("Velg gjenstand");
-    if (!toEmail) return toast.error("Fyll inn kjøpers e-post");
+    if (!itemId) return toast.error(t("transfer.selectItemError"));
+    if (!toEmail) return toast.error(t("transfer.emailError"));
     if (!salePriceNok || Number.isNaN(Number(salePriceNok)))
-      return toast.error("Pris må være et tall i NOK");
-    if (!accept) return toast.error("Du må bekrefte salgskontrakten");
+      return toast.error(t("transfer.priceError"));
+    if (!accept) return toast.error(t("transfer.acceptError"));
     setBusy(true);
     try {
       const created = await transfersApi.create({
@@ -296,7 +299,7 @@ function SellForm({
       });
       onCreated(created.id);
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke opprette eierskifte");
+      toast.error(err.message || t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -304,13 +307,13 @@ function SellForm({
 
   return (
     <form onSubmit={submit} className="space-y-8">
-      <Step icon="inventory_2" n={1} title="Gjenstand">
+      <Step icon="inventory_2" n={1} title={t("transfer.step1")}>
         <select
           value={itemId}
           onChange={(e) => setItemId(e.target.value)}
           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
         >
-          <option value="">— Velg —</option>
+          <option value="">{t("transfer.selectItem")}</option>
           {myItems.map((i) => (
             <option key={i.id} value={i.id}>
               {i.name}
@@ -343,26 +346,26 @@ function SellForm({
               style={{ overflow: "hidden" }}
             >
               <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-700 space-y-1">
-                <div><strong>Navn:</strong> {item.name}</div>
-                {item.brand && <div><strong>Merke:</strong> {item.brand}</div>}
-                {item.model && <div><strong>Modell:</strong> {item.model}</div>}
-                {item.serialNumber && <div><strong>Serienummer:</strong> {item.serialNumber}</div>}
+                <div><strong>{t("common.name")}:</strong> {item.name}</div>
+                {item.brand && <div><strong>{t("detalj.brand")}:</strong> {item.brand}</div>}
+                {item.model && <div><strong>{t("detalj.model")}:</strong> {item.model}</div>}
+                {item.serialNumber && <div><strong>{t("detalj.serial")}:</strong> {item.serialNumber}</div>}
                 {item.chipUid && (
                   <div>
-                    <strong>S-TAG chip-ID:</strong>{" "}
+                    <strong>{t("detalj.chip.code")}:</strong>{" "}
                     <span className="font-mono">{item.chipUid}</span>
                   </div>
                 )}
-                {item.color && <div><strong>Farge:</strong> {item.color}</div>}
+                {item.color && <div><strong>{t("detalj.color")}:</strong> {item.color}</div>}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </Step>
 
-      <Step icon="person" n={2} title="Kjøper">
+      <Step icon="person" n={2} title={t("transfer.step2")}>
         <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-          Kjøpers e-post
+          {t("transfer.buyerEmail")}
         </label>
         <input
           type="email"
@@ -372,16 +375,15 @@ function SellForm({
           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
         />
         <p className="mt-2 text-xs text-slate-500">
-          Kjøper logger inn på S-TAG og bekrefter kjøpet
-          {bankidReady ? " med BankID" : ""} før eierskapet overføres.
+          {t("transfer.buyerHint", bankidReady ? t("transfer.buyerHintBankid") : "")}
         </p>
       </Step>
 
-      <Step icon="payments" n={3} title="Pris og betaling">
+      <Step icon="payments" n={3} title={t("transfer.step3")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-              Avtalt pris (NOK)
+              {t("transfer.price")}
             </label>
             <input
               type="number"
@@ -394,25 +396,25 @@ function SellForm({
           </div>
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-              Betalingsmåte
+              {t("transfer.paymentMethod")}
             </label>
             <input
               type="text"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              placeholder="Vipps, bank, kontant…"
+              placeholder={t("transfer.paymentPlaceholder")}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
             />
           </div>
         </div>
       </Step>
 
-      <Step icon="rule" n={4} title="Tilstand og feil">
+      <Step icon="rule" n={4} title={t("transfer.step4")}>
         <textarea
           value={conditionNote}
           onChange={(e) => setConditionNote(e.target.value)}
           rows={4}
-          placeholder="F.eks. 'Lett bruk, mindre riper på ramma, service utført 2025'"
+          placeholder={t("transfer.conditionPlaceholder")}
           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 resize-none transition"
         />
         <label className="mt-4 flex items-start gap-3 cursor-pointer select-none">
@@ -423,18 +425,17 @@ function SellForm({
             className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0f2a5c]"
           />
           <span className="text-xs text-slate-600 leading-relaxed">
-            Gjenstanden selges <strong>«som den er»</strong>, jf. kjøpsloven § 19.
-            Selger plikter likevel å opplyse om kjente feil og mangler.
+            {t("transfer.asIs")}
           </span>
         </label>
       </Step>
 
-      <Step icon="edit_note" n={5} title="Tilleggsnotat">
+      <Step icon="edit_note" n={5} title={t("transfer.step5")}>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
-          placeholder="Eventuell melding til kjøper (valgfritt)"
+          placeholder={t("transfer.notePlaceholder")}
           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 resize-none transition"
         />
       </Step>
@@ -442,24 +443,22 @@ function SellForm({
       {/* Kontrakt-sammendrag */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <h3 className="text-xs font-black tracking-widest uppercase text-[#0f2a5c] mb-3">
-          Salgskontrakt · versjon 2026-04
+          {t("transfer.contractTitle")}
         </h3>
         <p className="text-sm text-slate-600 leading-relaxed mb-3">
-          Selger <strong>{user?.name || "—"}</strong> ({user?.email || "—"}) overdrar
-          eierskapet til <strong>{item?.name || "—"}</strong>
-          {item?.chipUid && (
-            <> med S-TAG chip-ID <span className="font-mono">{item.chipUid}</span></>
-          )}{" "}
-          til kjøper <strong>{toEmail || "—"}</strong> for{" "}
-          <strong>{salePriceNok ? `${salePriceNok} NOK` : "—"}</strong>.
-          Salget reguleres av norsk rett, herunder kjøpsloven. Dato: {today}.
+          {t(
+            "transfer.contractBody",
+            user?.name || "—",
+            user?.email || "—",
+            item?.name || "—",
+            item?.chipUid ? t("transfer.contractChipId", item.chipUid) : "",
+            salePriceNok ? `${salePriceNok} NOK` : "—",
+            today,
+          )}
         </p>
         <p className="text-xs text-slate-500 leading-relaxed mb-5">
-          S-TAG er ikke part i salget og gir ingen garanti for gjenstandens tilstand,
-          betaling eller andre forhold mellom partene.
-          {bankidReady && (
-            <> Både selger og kjøper må signere kontrakten med BankID.</>
-          )}
+          {t("transfer.contractDisclaimer")}
+          {bankidReady && t("transfer.contractBankidNote")}
         </p>
 
         <label className="flex items-start gap-3 cursor-pointer select-none">
@@ -470,14 +469,13 @@ function SellForm({
             className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0f2a5c]"
           />
           <span className="text-xs text-slate-700 leading-relaxed">
-            Jeg bekrefter at opplysningene er korrekte, at jeg er rettmessig eier,
-            og at jeg godtar{" "}
+            {t("transfer.acceptTerms")}{" "}
             <Link
               href="/vilkar"
               target="_blank"
               className="text-[#0f2a5c] font-bold underline"
             >
-              brukervilkårene
+              {t("transfer.terms")}
             </Link>
             .
           </span>
@@ -496,10 +494,10 @@ function SellForm({
           {bankidReady ? "fingerprint" : "send"}
         </span>
         {busy
-          ? "Oppretter…"
+          ? t("transfer.creating")
           : bankidReady
-          ? "Opprett og signer med BankID"
-          : "Opprett og send til kjøper"}
+          ? t("transfer.createBankid")
+          : t("transfer.createSend")}
       </button>
     </form>
   );
@@ -546,6 +544,7 @@ function TransferCard({
   onAction: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -562,10 +561,10 @@ function TransferCard({
         window.location.href = authUrl;
         return;
       }
-      toast.success("Eierskapet er overført");
+      toast.success(t("transfer.card.ownershipTransferred"));
       onAction();
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke akseptere");
+      toast.error(err.message || t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -577,7 +576,7 @@ function TransferCard({
       const { authUrl } = await signingApi.start(transfer.id, role);
       window.location.href = authUrl;
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke starte BankID");
+      toast.error(err.message || t("common.error"));
       setBusy(false);
     }
   };
@@ -651,27 +650,27 @@ function TransferCard({
             <div className="px-4 pb-5 pt-1 space-y-4 border-t border-slate-100">
               <dl className="text-sm text-slate-700 space-y-1.5">
                 <Row label="Status">
-                  {accepted ? "Overdratt" : "Venter på kjøper"}
+                  {accepted ? t("transfer.card.transferred") : t("transfer.card.waiting")}
                 </Row>
                 {transfer.paymentMethod && (
-                  <Row label="Betaling">{transfer.paymentMethod}</Row>
+                  <Row label={t("transfer.card.payment")}>{transfer.paymentMethod}</Row>
                 )}
                 {transfer.conditionNote && (
-                  <Row label="Tilstand">{transfer.conditionNote}</Row>
+                  <Row label={t("transfer.card.condition")}>{transfer.conditionNote}</Row>
                 )}
-                <Row label="«Som den er»">{transfer.asIs ? "Ja" : "Nei"}</Row>
-                <Row label="Kontraktversjon">{transfer.contractVersion || "—"}</Row>
+                <Row label={t("transfer.card.asIs")}>{transfer.asIs ? t("transfer.card.yes") : t("transfer.card.no")}</Row>
+                <Row label={t("transfer.card.contractVersion")}>{transfer.contractVersion || "—"}</Row>
               </dl>
 
               {/* Signature status */}
               <div className="grid grid-cols-2 gap-3">
                 <SignatureBadge
-                  label="Selger"
+                  label={t("transfer.card.seller")}
                   name={transfer.sellerSignatureName || transfer.sellerName || "—"}
                   signedAt={transfer.sellerSignedAt}
                 />
                 <SignatureBadge
-                  label="Kjøper"
+                  label={t("transfer.card.buyer")}
                   name={transfer.buyerSignatureName || transfer.buyerName || "—"}
                   signedAt={transfer.buyerSignedAt}
                 />
@@ -686,10 +685,10 @@ function TransferCard({
                     className="w-full py-3 rounded-2xl bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition disabled:opacity-50"
                   >
                     {busy
-                      ? "Jobber…"
+                      ? t("transfer.card.working")
                       : bankidReady
-                      ? "Aksepter og signer med BankID"
-                      : "Aksepter eierskifte"}
+                      ? t("transfer.card.acceptBankid")
+                      : t("transfer.card.accept")}
                   </button>
                 )}
 
@@ -702,7 +701,7 @@ function TransferCard({
                     <span className="material-symbols-outlined text-base">
                       fingerprint
                     </span>
-                    {busy ? "Starter…" : "Signer som selger med BankID"}
+                    {busy ? t("transfer.card.starting") : t("transfer.card.signSeller")}
                   </button>
                 )}
 
@@ -715,7 +714,7 @@ function TransferCard({
                     <span className="material-symbols-outlined text-base">
                       fingerprint
                     </span>
-                    {busy ? "Starter…" : "Signer som kjøper med BankID"}
+                    {busy ? t("transfer.card.starting") : t("transfer.card.signBuyer")}
                   </button>
                 )}
               </div>
@@ -747,6 +746,7 @@ function SignatureBadge({
   name: string;
   signedAt?: string | null;
 }) {
+  const { t } = useTranslation();
   const signed = !!signedAt;
   return (
     <div
@@ -775,7 +775,7 @@ function SignatureBadge({
               month: "short",
               year: "numeric",
             })
-          : "Ikke signert"}
+          : t("transfer.card.notSigned")}
       </div>
     </div>
   );

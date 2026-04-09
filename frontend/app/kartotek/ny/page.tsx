@@ -7,19 +7,21 @@ import PhotoPicker from "../../components/PhotoPicker";
 import { items as itemsApi, API_BASE } from "../../lib/api";
 import { useToast } from "../../components/Toast";
 import { useGeolocation, hasGeoConsent } from "../../lib/use-geolocation";
-
-const CATEGORIES = [
-  { id: "electronics", label: "Elektronikk", icon: "devices" },
-  { id: "bike", label: "Sykkel", icon: "pedal_bike" },
-  { id: "vehicle", label: "Kjøretøy", icon: "directions_car" },
-  { id: "bag", label: "Veske/sekk", icon: "backpack" },
-  { id: "tools", label: "Verktøy", icon: "construction" },
-  { id: "jewellery", label: "Smykker", icon: "diamond" },
-  { id: "document", label: "Dokumenter", icon: "description" },
-  { id: "other", label: "Annet", icon: "category" },
-];
+import { useTranslation } from "../../lib/i18n";
 
 export default function NyGjenstandPage() {
+  const { t } = useTranslation();
+
+  const CATEGORIES = [
+    { id: "electronics", label: t("kartotekNy.catElectronics"), icon: "devices" },
+    { id: "bike", label: t("kartotekNy.catBike"), icon: "pedal_bike" },
+    { id: "vehicle", label: t("kartotekNy.catVehicle"), icon: "directions_car" },
+    { id: "bag", label: t("kartotekNy.catBag"), icon: "backpack" },
+    { id: "tools", label: t("kartotekNy.catTools"), icon: "construction" },
+    { id: "jewellery", label: t("kartotekNy.catJewellery"), icon: "diamond" },
+    { id: "document", label: t("kartotekNy.catDocument"), icon: "description" },
+    { id: "other", label: t("kartotekNy.catOther"), icon: "category" },
+  ];
   const router = useRouter();
   const toast = useToast();
   const geo = useGeolocation(true);
@@ -74,20 +76,20 @@ export default function NyGjenstandPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error("Navn er påkrevd");
+      toast.error(t("kartotekNy.nameRequired"));
       return;
     }
     const code = stagCode.trim().toUpperCase();
     if (!code) {
-      toast.error("S-TAG-kode er påkrevd");
+      toast.error(t("kartotekNy.codeRequired"));
       return;
     }
     if (code.length < 6) {
-      toast.error("S-TAG-koden virker ugyldig");
+      toast.error(t("kartotekNy.codeInvalid"));
       return;
     }
     if (codeStatus === "taken") {
-      toast.error("Denne S-TAG-koden er allerede registrert");
+      toast.error(t("kartotekNy.codeTaken"));
       return;
     }
     setLoading(true);
@@ -150,15 +152,14 @@ export default function NyGjenstandPage() {
               </span>
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-              Nasjonalt register
+              {t("kartotekNy.nationalRegistry")}
             </span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-            Registrer eiendel
+            {t("kartotekNy.title")}
           </h1>
           <p className="text-white/50 text-sm leading-relaxed">
-            Skriv inn S-TAG-koden fra emballasjen. Koden knytter gjenstanden
-            til din konto i registeret.
+            {t("kartotekNy.subtitle")}
           </p>
         </motion.div>
       </div>
@@ -196,7 +197,7 @@ export default function NyGjenstandPage() {
                 </span>
               </div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                S-TAG-kode
+                {t("kartotekNy.stagCode")}
               </p>
             </div>
             <input
@@ -219,24 +220,24 @@ export default function NyGjenstandPage() {
             />
             <div className="text-xs h-5">
               {codeStatus === "checking" && (
-                <span className="text-slate-400">Sjekker …</span>
+                <span className="text-slate-400">{t("kartotekNy.checking")}</span>
               )}
               {codeStatus === "available" && (
                 <span className="text-emerald-700 font-semibold flex items-center gap-1">
                   <span className="material-symbols-outlined text-sm">
                     check_circle
                   </span>
-                  Koden er ledig — klar til registrering
+                  {t("kartotekNy.available")}
                 </span>
               )}
               {codeStatus === "taken" && (
                 <span className="text-red-600 font-semibold">
-                  Denne koden er allerede registrert
+                  {t("kartotekNy.taken")}
                 </span>
               )}
               {codeStatus === "invalid" && (
                 <span className="text-red-600 font-semibold">
-                  Koden virker for kort
+                  {t("kartotekNy.tooShort")}
                 </span>
               )}
             </div>
@@ -245,7 +246,7 @@ export default function NyGjenstandPage() {
           {/* Grunnleggende */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <Input
-              label="Navn"
+              label={t("common.name")}
               value={name}
               onChange={setName}
               placeholder='F.eks. MacBook Pro 14"'
@@ -253,7 +254,7 @@ export default function NyGjenstandPage() {
             />
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                Kategori
+                {t("kartotekNy.category")}
               </p>
               <div className="grid grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
@@ -293,7 +294,7 @@ export default function NyGjenstandPage() {
             >
               expand_more
             </motion.span>
-            {showMore ? "Skjul detaljer" : "Flere detaljer"}
+            {showMore ? t("kartotekNy.hideDetails") : t("kartotekNy.moreDetails")}
           </button>
 
           <AnimatePresence initial={false}>
@@ -320,20 +321,20 @@ export default function NyGjenstandPage() {
             >
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
               <Textarea
-                label="Beskrivelse"
+                label={t("kartotekNy.description")}
                 value={description}
                 onChange={setDescription}
-                placeholder="Kjennetegn, tilbehør, særtrekk …"
+                placeholder={t("kartotekNy.descPlaceholder")}
               />
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Merke"
+                  label={t("kartotekNy.brand")}
                   value={brand}
                   onChange={setBrand}
                   placeholder="Apple"
                 />
                 <Input
-                  label="Modell"
+                  label={t("kartotekNy.model")}
                   value={model}
                   onChange={setModel}
                   placeholder="MBP14 M3"
@@ -341,13 +342,13 @@ export default function NyGjenstandPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Farge"
+                  label={t("kartotekNy.color")}
                   value={color}
                   onChange={setColor}
                   placeholder="Space Grey"
                 />
                 <Input
-                  label="Serienummer"
+                  label={t("kartotekNy.serialNumber")}
                   value={serialNumber}
                   onChange={setSerialNumber}
                   placeholder="SN123…"
@@ -355,14 +356,14 @@ export default function NyGjenstandPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Verdi (NOK)"
+                  label={t("kartotekNy.value")}
                   type="number"
                   value={valueNok}
                   onChange={setValueNok}
                   placeholder="25000"
                 />
                 <Input
-                  label="Kjøpsdato"
+                  label={t("kartotekNy.purchaseDate")}
                   type="date"
                   value={purchasedAt}
                   onChange={setPurchasedAt}
@@ -380,7 +381,7 @@ export default function NyGjenstandPage() {
               disabled={loading || !canSubmit}
               className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
             >
-              {loading ? "Registrerer …" : "Registrer gjenstand"}
+              {loading ? t("kartotekNy.registering") : t("kartotekNy.register")}
             </button>
           </div>
         </form>

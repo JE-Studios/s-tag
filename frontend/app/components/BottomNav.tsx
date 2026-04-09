@@ -2,18 +2,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-
-const tabs = [
-  { href: "/hjem", label: "Hjem", icon: "home" },
-  { href: "/kartotek", label: "Mine ting", icon: "inventory_2" },
-  { href: "/sporing", label: "Sporing", icon: "location_on" },
-  { href: "/innstillinger", label: "Profil", icon: "person" },
-];
+import { useTranslation } from "../lib/i18n";
 
 const HIDDEN_ROUTES = ["/", "/logg-inn", "/registrer", "/glemt-passord", "/tilbakestill-passord"];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const tabs = [
+    { href: "/hjem", label: t("nav.home"), icon: "home" },
+    { href: "/kartotek", label: t("nav.myItems"), icon: "inventory_2" },
+    { href: "/sporing", label: t("nav.tracking"), icon: "location_on" },
+    { href: "/innstillinger", label: t("nav.profile"), icon: "person" },
+  ];
 
   if (HIDDEN_ROUTES.includes(pathname)) return null;
 

@@ -4,6 +4,7 @@ import BottomNav from "./components/BottomNav";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./lib/auth-context";
 import { ToastProvider } from "./components/Toast";
+import { I18nProvider } from "./lib/i18n";
 
 export const metadata: Metadata = {
   title: "S-TAG | Innebygd sikring for det du eier",
@@ -60,12 +61,14 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-white text-slate-900">
         <ErrorBoundary>
-          <ToastProvider>
-            <AuthProvider>
-              {children}
-              <BottomNav />
-            </AuthProvider>
-          </ToastProvider>
+          <I18nProvider>
+            <ToastProvider>
+              <AuthProvider>
+                {children}
+                <BottomNav />
+              </AuthProvider>
+            </ToastProvider>
+          </I18nProvider>
         </ErrorBoundary>
       </body>
     </html>

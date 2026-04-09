@@ -4,35 +4,37 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import TopBar from "../components/TopBar";
 import { items as itemsApi, Item } from "../lib/api";
+import { useTranslation } from "../lib/i18n";
 
 type RegistryItem = Item;
-
-const statusBadge = {
-  secured: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Sikret" },
-  missing: { bg: "bg-red-50", text: "text-red-600", label: "Savnet" },
-  inactive: { bg: "bg-slate-200", text: "text-slate-600", label: "Inaktiv" },
-};
 
 type SortKey = "newest" | "oldest" | "name" | "status";
 type FilterKey = "all" | "secured" | "missing" | "paired" | "unpaired";
 
-const SORT_LABEL: Record<SortKey, string> = {
-  newest: "Nyeste først",
-  oldest: "Eldste først",
-  name: "Navn A–Å",
-  status: "Savnet først",
-};
-
-const FILTER_LABEL: Record<FilterKey, string> = {
-  all: "Alle",
-  secured: "Sikret",
-  missing: "Savnet",
-  paired: "Aktiv chip",
-  unpaired: "Venter på signal",
-};
-
 
 export default function KartotekPage() {
+  const { t } = useTranslation();
+
+  const statusBadge = {
+    secured: { bg: "bg-emerald-50", text: "text-emerald-700", label: t("common.secured") },
+    missing: { bg: "bg-red-50", text: "text-red-600", label: t("common.missing") },
+    inactive: { bg: "bg-slate-200", text: "text-slate-600", label: t("common.inactive") },
+  };
+
+  const SORT_LABEL: Record<SortKey, string> = {
+    newest: t("kartotek.sortNewest"),
+    oldest: t("kartotek.sortOldest"),
+    name: t("kartotek.sortName"),
+    status: t("kartotek.sortStatus"),
+  };
+
+  const FILTER_LABEL: Record<FilterKey, string> = {
+    all: t("kartotek.filterAll"),
+    secured: t("kartotek.filterSecured"),
+    missing: t("kartotek.filterMissing"),
+    paired: t("kartotek.filterPaired"),
+    unpaired: t("kartotek.filterUnpaired"),
+  };
   const [list, setList] = useState<RegistryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -92,14 +94,21 @@ export default function KartotekPage() {
           className="mb-6"
         >
           <h1 className="font-extrabold text-4xl text-slate-900 leading-tight mb-2 tracking-tight">
-            Kartotek
+            {t("kartotek.title")}
           </h1>
           <p className="text-slate-500 text-sm font-medium">
-            Administrer dine registrerte eiendeler og{" "}
-            <span className="s-tag-wordmark text-sm">
-              S<span className="accent">-</span>TAG
-            </span>{" "}
-            status.
+            {(() => {
+              const parts = t("kartotek.subtitle", "{{STAG}}").split("{{STAG}}");
+              return parts.length === 2 ? (
+                <>
+                  {parts[0]}
+                  <span className="s-tag-wordmark text-sm">
+                    S<span className="accent">-</span>TAG
+                  </span>
+                  {parts[1]}
+                </>
+              ) : t("kartotek.subtitle");
+            })()}
           </p>
         </motion.section>
 
@@ -112,7 +121,7 @@ export default function KartotekPage() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Søk på navn, merke, serienr …"
+            placeholder={t("kartotek.search")}
             className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-3.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
           />
         </div>
@@ -130,7 +139,7 @@ export default function KartotekPage() {
               <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                    Filter
+                    {t("kartotek.filter")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {(Object.keys(FILTER_LABEL) as FilterKey[]).map((k) => (
@@ -150,7 +159,7 @@ export default function KartotekPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                    Sorter
+                    {t("kartotek.sort")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
@@ -176,23 +185,23 @@ export default function KartotekPage() {
         {/* Resultatantall */}
         {!loading && (
           <p className="text-xs text-slate-500 mb-4 font-medium">
-            Viser {filtered.length} av {list.length}
-            {filter !== "all" && ` · filter: ${FILTER_LABEL[filter]}`}
+            {t("kartotek.showing", filtered.length, list.length)}
+            {filter !== "all" && ` · ${t("kartotek.filter").toLowerCase()}: ${FILTER_LABEL[filter]}`}
           </p>
         )}
 
         {!loading && list.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-2xl">
             <span className="material-symbols-outlined text-6xl text-slate-300">inventory_2</span>
-            <h3 className="mt-4 text-xl font-bold text-slate-700">Ingen gjenstander enda</h3>
-            <p className="text-slate-500 mt-1">Registrer din første gjenstand for å komme i gang.</p>
+            <h3 className="mt-4 text-xl font-bold text-slate-700">{t("kartotek.emptyTitle")}</h3>
+            <p className="text-slate-500 mt-1">{t("kartotek.emptySub")}</p>
           </div>
         )}
 
         {!loading && list.length > 0 && filtered.length === 0 && (
           <div className="text-center py-12 border border-slate-200 rounded-2xl bg-slate-50">
             <span className="material-symbols-outlined text-4xl text-slate-300">search_off</span>
-            <p className="text-slate-500 mt-2 font-medium">Ingen treff på søket</p>
+            <p className="text-slate-500 mt-2 font-medium">{t("kartotek.noResults")}</p>
           </div>
         )}
 
@@ -257,7 +266,7 @@ export default function KartotekPage() {
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
               add_circle
             </span>
-            Registrer ny gjenstand
+            {t("kartotek.registerNew")}
           </Link>
         </div>
       </div>
