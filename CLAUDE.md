@@ -42,6 +42,7 @@ mobile/           Capacitor wrapper
 - Bruk TypeScript for alt i frontend
 - Ikke installer nye npm-pakker uten god grunn
 - Hver endring = én feature branch + én PR. Aldri push direkte til main.
+- **Oppdater ALLTID denne filen (CLAUDE.md)** hvis du endrer noe som påvirker deploy, miljøvariabler, nye tjenester, nye begrensninger, eller annen info fremtidige agenter trenger
 
 ### Sikkerhet
 - ALDRI hardkod API-nøkler, secrets eller credentials
