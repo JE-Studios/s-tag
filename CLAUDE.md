@@ -28,7 +28,9 @@ frontend/
   app/                  App Router sider og komponenter
   app/lib/api.ts        API-klient (brukes av ALLE sider — endringer kan brekke alt)
   app/lib/auth-context.tsx  Auth state (brekker denne = alle brukere kastes ut)
-  app/components/       Gjenbrukbare: TopBar, BottomNav, Toast, OAuthButtons
+  app/lib/i18n.tsx        I18n-system (context, auto-detect, lazy-load). Endringer påvirker alle sider.
+  app/lib/translations/   Oversettelsesfiler (nb/en/de/es/fr/da/sv). ~370 nøkler per språk.
+  app/components/       Gjenbrukbare: TopBar (m/ språkvelger), BottomNav, Toast, OAuthButtons
   AGENTS.md             Next.js 16-spesifikke agent-regler
 mobile/                 Capacitor wrapper
 .github/workflows/      GitHub Actions (auto-deploy til Railway)
@@ -177,6 +179,9 @@ Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
 - Funnet-gjenstand offentlig flyt (QR-kode -> rapporter funn)
 - CORS er sikkert (kun eksplisitte domener, aldri wildcard)
 - Auto-deploy: frontend via Vercel, backend via GitHub Actions
+- Flerspråklig: 7 språk (nb, en, de, es, fr, da, sv) med auto-deteksjon og språkvelger i TopBar
+- JWT expiry-sjekk i frontend (utløpt token fjernes automatisk)
+- Geocoding debounce (400ms) på sporingssiden
 
 ### Blokkert
 - **E-post til andre brukere:** Resend sin test-avsender (`onboarding@resend.dev`) kan KUN sende til kontoeier (`eliah.slette@gmail.com`). Alle andre brukere får ikke e-post (glemt passord, varsler osv.). Krever: kjøpe eget domene + verifisere DNS i Resend.
@@ -193,6 +198,9 @@ Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
 - **Apple-innlogging:** Ikke konfigurert. Trenger Apple Developer Program.
 - **schema.sql:** Endringer kan ødelegge eksisterende data. Ikke endre uten eksplisitt godkjenning fra Eliah.
 - **Next.js 16:** Har breaking changes fra tidligere versjoner. Les `frontend/AGENTS.md` før du skriver frontend-kode.
+- **Samtykke-toggles:** Posisjon fungerer (styrer GPS). E-post-varsler, push-varsler og markedsføring lagres i DB men har ingen effekt ennå (mangler domene/push-infra). Ikke fjern dem — de er GDPR-samtykke som trengs når funksjonene implementeres.
+- **i18n:** Alle UI-strenger bruker `t()` fra `app/lib/i18n.tsx`. Nye sider MÅ bruke `useTranslation()` og legge nye nøkler i ALLE 7 oversettelsesfiler. Norsk (nb) er fallback — manglende nøkler i andre språk viser norsk tekst.
+- **Cookies:** Appen bruker kun localStorage (token, språk, geo-samtykke) — ingen cookies, ingen analytics, ingen cookie-banner nødvendig.
 
 ## Lokal utvikling
 
