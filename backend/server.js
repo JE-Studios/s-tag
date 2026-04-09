@@ -16,7 +16,7 @@ const TOKEN_TTL_DAYS = 30;
 
 // CORS: default-liste dekker Vercel + lokal dev + Capacitor. Override via CORS_ORIGINS.
 const DEFAULT_ORIGINS = [
-  "https://s-tag-ten.vercel.app",
+  "https://s-tag-hazel.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
   "capacitor://localhost",
@@ -420,6 +420,118 @@ app.post("/api/auth/password", requireAuth, h(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// ============================================================================
+// GLEMT PASSORD (password reset via e-post)
+// ============================================================================
+// Flyten:
+//   1. Bruker ber om tilbakestilling via POST /api/auth/forgot-password
+//   2. Backend genererer en tidsbegrenset token (1 time), sender e-post via Resend
+//   3. Bruker klikker link → frontend /tilbakestill-passord?token=xxx
+//   4. Frontend sender POST /api/auth/reset-password med token + nytt passord
+//
+// I dev uten RESEND_API_KEY logges reset-lenken til konsollen.
+
+const resetTokens = new Map(); // token → { userId, email, createdAt }
+const RESET_TTL_MS = 60 * 60 * 1000; // 1 time
+
+// Rydd utløpte tokens hvert 10. minutt
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of resetTokens) {
+    if (now - v.createdAt > RESET_TTL_MS) resetTokens.delete(k);
+  }
+}, 10 * 60 * 1000).unref?.();
+
+const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, name: "reset" });
+
+app.post("/api/auth/forgot-password", resetLimiter, h(async (req, res) => {
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: "E-post er påkrevd" });
+
+  // VIKTIG: Returnér alltid 200 uansett om brukeren finnes eller ikke.
+  // Forhindrer e-post-enumerering.
+  const user = await db.findUserByEmail(email);
+  if (!user) {
+    // Vent litt for å unngå timing-analyse
+    await new Promise((r) => setTimeout(r, 200 + Math.random() * 300));
+    return res.json({ ok: true });
+  }
+
+  // Generer token
+  const token = crypto.randomBytes(32).toString("hex");
+  resetTokens.set(token, { userId: user.id, email, createdAt: Date.now() });
+
+  const resetUrl = `${APP_BASE_URL}/tilbakestill-passord?token=${token}`;
+
+  // Send e-post via Resend (eller logg i dev)
+  if (RESEND_API_KEY) {
+    const firstName = user.name.split(" ")[0];
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: FEEDBACK_FROM,
+          to: [email],
+          subject: "Tilbakestill passordet ditt — S-TAG",
+          html: `
+            <div style="font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#0f172a;">
+              <h1 style="font-size:22px;margin:0 0 8px 0;">Hei, ${firstName}</h1>
+              <p style="color:#475569;line-height:1.6;margin:0 0 24px 0;">
+                Vi mottok en forespørsel om å tilbakestille passordet ditt.
+                Klikk knappen under for å velge et nytt passord.
+              </p>
+              <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#0f2a5c;color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;">
+                Tilbakestill passord
+              </a>
+              <p style="color:#94a3b8;font-size:12px;margin:24px 0 0 0;line-height:1.5;">
+                Lenken er gyldig i 1 time. Hvis du ikke ba om dette, kan du trygt ignorere denne e-posten.
+              </p>
+            </div>
+          `,
+          text: `Tilbakestill passord: ${resetUrl}\n\nLenken er gyldig i 1 time.`,
+        }),
+      });
+    } catch (err) {
+      console.error("[RESET-MAIL] Feil:", err.message);
+    }
+  } else {
+    console.log(`[RESET] ${email} → ${resetUrl}`);
+  }
+
+  res.json({ ok: true });
+}));
+
+app.post("/api/auth/reset-password", resetLimiter, h(async (req, res) => {
+  const token = String(req.body?.token || "").trim();
+  const newPassword = String(req.body?.newPassword || "").trim();
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: "Token og nytt passord er påkrevd" });
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: "Passord må være minst 8 tegn" });
+  }
+  if (newPassword.length > 256) {
+    return res.status(400).json({ error: "Passord for langt" });
+  }
+
+  const entry = resetTokens.get(token);
+  if (!entry || Date.now() - entry.createdAt > RESET_TTL_MS) {
+    resetTokens.delete(token);
+    return res.status(400).json({
+      error: "Lenken er ugyldig eller utløpt. Be om en ny tilbakestilling.",
+    });
+  }
+
+  await db.updateUserPassword(entry.userId, hashPassword(newPassword));
+  resetTokens.delete(token);
+
+  res.json({ ok: true });
+}));
+
 // Slett konto (GDPR rett til sletting)
 app.delete("/api/auth/me", requireAuth, h(async (req, res) => {
   await db.deleteUser(req.userId);
@@ -448,7 +560,21 @@ app.get("/api/auth/export", requireAuth, h(async (req, res) => {
 // ============================================================================
 
 const geocodeCache = new Map();
-app.get("/api/geocode", h(async (req, res) => {
+const geocodeLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, name: "geocode" });
+
+// Periodisk opprydding av geocode-cache (maks 5000 entries)
+setInterval(() => {
+  if (geocodeCache.size > 5000) {
+    const toDelete = geocodeCache.size - 4000;
+    const iter = geocodeCache.keys();
+    for (let i = 0; i < toDelete; i++) {
+      const key = iter.next().value;
+      if (key) geocodeCache.delete(key);
+    }
+  }
+}, 15 * 60 * 1000).unref?.();
+
+app.get("/api/geocode", geocodeLimiter, h(async (req, res) => {
   const latNum = Number(req.query.lat);
   const lngNum = Number(req.query.lng);
   if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {

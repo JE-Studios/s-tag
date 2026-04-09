@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import BottomNav from "./components/BottomNav";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./lib/auth-context";
 import { ToastProvider } from "./components/Toast";
 
@@ -58,12 +59,14 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-white text-slate-900">
-        <ToastProvider>
-          <AuthProvider>
-            {children}
-            <BottomNav />
-          </AuthProvider>
-        </ToastProvider>
+        <ErrorBoundary>
+          <ToastProvider>
+            <AuthProvider>
+              {children}
+              <BottomNav />
+            </AuthProvider>
+          </ToastProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
