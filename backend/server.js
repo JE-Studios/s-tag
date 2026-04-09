@@ -38,7 +38,7 @@ app.use(
     credentials: false,
   })
 );
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 
 // --- Auth helpers (pure Node crypto, ingen eksterne avhengigheter) ---
 function hashPassword(password, salt) {

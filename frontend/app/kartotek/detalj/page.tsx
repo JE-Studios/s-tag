@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import TopBar from "../../components/TopBar";
+import PhotoPicker from "../../components/PhotoPicker";
 import { items as itemsApi, ItemEvent, Item, API_BASE } from "../../lib/api";
 import { useToast } from "../../components/Toast";
 
@@ -52,6 +53,7 @@ function ItemDetailPage() {
   const [events, setEvents] = useState<ItemEvent[]>([]);
   const [address, setAddress] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [photoEdit, setPhotoEdit] = useState<string | null>(null);
 
   const refreshItem = async () => {
     const data = await itemsApi.get(id);
@@ -121,6 +123,21 @@ function ItemDetailPage() {
     }
   };
 
+  const handlePhotoChange = async (newUrl: string) => {
+    if (!item) return;
+    setPhotoEdit(newUrl);
+    try {
+      const updated = await itemsApi.update(item.id, { photoUrl: newUrl || null } as Partial<Item>);
+      setItem(updated);
+      setPhotoEdit(null);
+      toast.success(newUrl ? "Bilde oppdatert" : "Bilde fjernet");
+    } catch (err: unknown) {
+      setPhotoEdit(null);
+      const msg = err instanceof Error ? err.message : "Kunne ikke oppdatere bilde";
+      toast.error(msg);
+    }
+  };
+
   const removeItem = async () => {
     if (!confirm(`Slette "${item.name}" permanent?`)) return;
     try {
@@ -170,12 +187,12 @@ function ItemDetailPage() {
         )}
 
         {/* Bilde */}
-        {item.photoUrl && (
-          <div className="mb-4 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.photoUrl} alt={item.name} className="w-full h-56 object-cover" />
-          </div>
-        )}
+        <div className="mb-4">
+          <PhotoPicker
+            value={photoEdit !== null ? photoEdit : (item.photoUrl || "")}
+            onChange={handlePhotoChange}
+          />
+        </div>
 
         {/* Kart */}
         <motion.div

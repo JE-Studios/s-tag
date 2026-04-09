@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import TopBar from "../../components/TopBar";
+import PhotoPicker from "../../components/PhotoPicker";
 import { items as itemsApi, API_BASE } from "../../lib/api";
 import { useToast } from "../../components/Toast";
 import { useGeolocation, hasGeoConsent } from "../../lib/use-geolocation";
@@ -21,13 +22,14 @@ const CATEGORIES = [
 export default function NyGjenstandPage() {
   const router = useRouter();
   const toast = useToast();
-  // Auto-henter posisjon stille i bakgrunnen dersom brukeren allerede
-  // har gitt samtykke ved registrering. Ingen prompt eller knapp på denne siden.
   const geo = useGeolocation(true);
   const [loading, setLoading] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const [stagCode, setStagCode] = useState("");
-  const [codeStatus, setCodeStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
+  const [codeStatus, setCodeStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "invalid"
+  >("idle");
   const [name, setName] = useState("");
   const [category, setCategory] = useState("electronics");
   const [description, setDescription] = useState("");
@@ -53,7 +55,10 @@ export default function NyGjenstandPage() {
     setCodeStatus("checking");
     const t = setTimeout(async () => {
       try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("stag_token") : null;
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("stag_token")
+            : null;
         const r = await fetch(
           `${API_BASE}/api/items/code-available?code=${encodeURIComponent(trimmed)}`,
           { headers: token ? { Authorization: `Bearer ${token}` } : {} }
@@ -88,7 +93,7 @@ export default function NyGjenstandPage() {
     }
     setLoading(true);
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         name: name.trim(),
         category,
         chipUid: code,
@@ -99,20 +104,27 @@ export default function NyGjenstandPage() {
         serialNumber: serialNumber.trim() || undefined,
         valueNok: valueNok ? Number(valueNok) : undefined,
         purchasedAt: purchasedAt || undefined,
-        photoUrl: photoUrl.trim() || undefined,
+        photoUrl: photoUrl || undefined,
       };
       if (hasGeoConsent() && geo.lat != null && geo.lng != null) {
         payload.lat = geo.lat;
         payload.lng = geo.lng;
       }
-      const created = await itemsApi.create(payload);
+      const created = await itemsApi.create(payload as Parameters<typeof itemsApi.create>[0]);
       toast.success(`${created.name} er registrert`);
       router.replace(`/kartotek/detalj?id=${created.id}`);
-    } catch (err: any) {
-      toast.error(err.message || "Kunne ikke registrere");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Kunne ikke registrere";
+      toast.error(msg);
       setLoading(false);
     }
   };
+
+  const canSubmit =
+    name.trim() &&
+    stagCode.trim().length >= 6 &&
+    codeStatus !== "taken" &&
+    codeStatus !== "invalid";
 
   return (
     <>
@@ -124,141 +136,231 @@ export default function NyGjenstandPage() {
           transition={{ duration: 0.5 }}
           className="mb-6"
         >
-          <h1 className="font-extrabold text-4xl text-slate-900 tracking-tight mb-2">
+          <h1 className="font-extrabold text-3xl text-slate-900 tracking-tight mb-1">
             Registrer eiendel
           </h1>
-          <p className="text-slate-500 text-sm">
-            S-TAG-chip-en er allerede støpt inn i produktet av produsenten. Legg inn S-TAG-koden
-            som fulgte med — så knytter vi gjenstanden til din konto.
+          <p className="text-slate-500 text-sm leading-relaxed">
+            Skriv inn S-TAG-koden fra emballasjen og gi gjenstanden et navn
+            — ferdig.
           </p>
         </motion.div>
 
-        <form onSubmit={submit} className="space-y-6">
-          <Section title="S-TAG-kode" required>
-            <p className="text-xs text-slate-500 -mt-1 leading-relaxed">
-              Finner du på produktemballasjen, i produsentens app eller ved å skanne S-TAG-merket.
-              Eksempel: <span className="font-mono">ST-4F3A-92CB</span>
-            </p>
-            <div>
-              <label className="block">
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
-                  Kode
+        <form onSubmit={submit} className="space-y-5">
+          {/* S-TAG Code — premium dark card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.05 }}
+            className="bg-gradient-to-br from-[#0a1e3d] to-[#0f2a5c] rounded-3xl p-5 shadow-lg shadow-[#0a1e3d]/20"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className="material-symbols-outlined text-white/70 text-lg"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                nfc
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">
+                S-TAG-kode
+              </span>
+            </div>
+            <input
+              type="text"
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              autoFocus
+              value={stagCode}
+              onChange={(e) => setStagCode(e.target.value.toUpperCase())}
+              placeholder="ST-XXXX-XXXX"
+              className={`w-full font-mono text-lg tracking-wider bg-white/10 border rounded-xl px-4 py-3.5 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 transition ${
+                codeStatus === "available"
+                  ? "border-emerald-400/60 focus:ring-emerald-400/20"
+                  : codeStatus === "taken" || codeStatus === "invalid"
+                  ? "border-red-400/60 focus:ring-red-400/20"
+                  : "border-white/20 focus:ring-white/10"
+              }`}
+            />
+            <div className="mt-2 text-xs h-5">
+              {codeStatus === "checking" && (
+                <span className="text-white/50">Sjekker kode …</span>
+              )}
+              {codeStatus === "available" && (
+                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">
+                    check_circle
+                  </span>
+                  Klar til registrering
                 </span>
-                <input
-                  type="text"
-                  autoCapitalize="characters"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={stagCode}
-                  onChange={(e) => setStagCode(e.target.value.toUpperCase())}
-                  placeholder="ST-XXXX-XXXX"
-                  className={`w-full font-mono tracking-wider bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition ${
-                    codeStatus === "available"
-                      ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
-                      : codeStatus === "taken" || codeStatus === "invalid"
-                      ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
-                      : "border-slate-200 focus:border-[#0f2a5c] focus:ring-[#0f2a5c]/10"
+              )}
+              {codeStatus === "taken" && (
+                <span className="text-red-400 font-semibold">
+                  Allerede registrert
+                </span>
+              )}
+              {codeStatus === "invalid" && (
+                <span className="text-red-400 font-semibold">
+                  Koden virker for kort
+                </span>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Name */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <label className="block">
+              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+                Hva er det? <span className="text-red-500">*</span>
+              </span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder='F.eks. MacBook Pro 14"'
+                required
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
+              />
+            </label>
+          </motion.div>
+
+          {/* Category */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+          >
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+              Kategori
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategory(c.id)}
+                  className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border transition ${
+                    category === c.id
+                      ? "bg-[#0f2a5c] text-white border-[#0f2a5c]"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
-                  required
-                />
-              </label>
-              <div className="mt-2 text-xs h-5">
-                {codeStatus === "checking" && (
-                  <span className="text-slate-500">Sjekker kode …</span>
-                )}
-                {codeStatus === "available" && (
-                  <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    Koden er ledig — klar til registrering
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {c.icon}
                   </span>
-                )}
-                {codeStatus === "taken" && (
-                  <span className="text-red-600 font-semibold">
-                    Denne koden er allerede registrert
+                  <span className="text-[9px] font-bold text-center leading-tight px-1">
+                    {c.label}
                   </span>
-                )}
-                {codeStatus === "invalid" && (
-                  <span className="text-red-600 font-semibold">
-                    Koden virker for kort
-                  </span>
-                )}
-              </div>
+                </button>
+              ))}
             </div>
-          </Section>
+          </motion.div>
 
-          <Section title="Grunnleggende" required>
-            <Input label="Navn" value={name} onChange={setName} placeholder="F.eks. MacBook Pro 14&quot;" required />
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                Kategori
-              </p>
-              <div className="grid grid-cols-4 gap-2">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setCategory(c.id)}
-                    className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border transition ${
-                      category === c.id
-                        ? "bg-[#0f2a5c] text-white border-[#0f2a5c]"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-xl">{c.icon}</span>
-                    <span className="text-[9px] font-bold text-center leading-tight px-1">
-                      {c.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Textarea
-              label="Beskrivelse"
-              value={description}
-              onChange={setDescription}
-              placeholder="Kjennetegn, tilbehør, særtrekk …"
-            />
-          </Section>
+          {/* Photo */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <PhotoPicker value={photoUrl} onChange={setPhotoUrl} />
+          </motion.div>
 
-          <Section title="Identifikasjon">
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Merke" value={brand} onChange={setBrand} placeholder="Apple" />
-              <Input label="Modell" value={model} onChange={setModel} placeholder="MBP14 M3" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Farge" value={color} onChange={setColor} placeholder="Space Grey" />
-              <Input label="Serienummer" value={serialNumber} onChange={setSerialNumber} placeholder="SN123…" />
-            </div>
-          </Section>
+          {/* Toggle for extra details */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowMore(!showMore)}
+              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold text-[#0f2a5c] hover:text-[#1e40af] transition"
+            >
+              <span
+                className="material-symbols-outlined text-lg transition-transform duration-300"
+                style={{
+                  transform: showMore ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              >
+                expand_more
+              </span>
+              {showMore ? "Skjul detaljer" : "Legg til flere detaljer"}
+            </button>
+          </motion.div>
 
-          <Section title="Verdi og kjøp">
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Verdi (NOK)"
-                type="number"
-                value={valueNok}
-                onChange={setValueNok}
-                placeholder="25000"
-              />
-              <Input
-                label="Kjøpsdato"
-                type="date"
-                value={purchasedAt}
-                onChange={setPurchasedAt}
-              />
-            </div>
-            <Input
-              label="Bilde-URL"
-              value={photoUrl}
-              onChange={setPhotoUrl}
-              placeholder="https://…/bilde.jpg"
-            />
-          </Section>
+          {/* Collapsible extras */}
+          <AnimatePresence>
+            {showMore && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+                  <Textarea
+                    label="Beskrivelse"
+                    value={description}
+                    onChange={setDescription}
+                    placeholder="Kjennetegn, tilbehør, særtrekk …"
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Merke"
+                      value={brand}
+                      onChange={setBrand}
+                      placeholder="Apple"
+                    />
+                    <Input
+                      label="Modell"
+                      value={model}
+                      onChange={setModel}
+                      placeholder="MBP14 M3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Farge"
+                      value={color}
+                      onChange={setColor}
+                      placeholder="Space Grey"
+                    />
+                    <Input
+                      label="Serienummer"
+                      value={serialNumber}
+                      onChange={setSerialNumber}
+                      placeholder="SN123…"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Verdi (NOK)"
+                      type="number"
+                      value={valueNok}
+                      onChange={setValueNok}
+                      placeholder="25000"
+                    />
+                    <Input
+                      label="Kjøpsdato"
+                      type="date"
+                      value={purchasedAt}
+                      onChange={setPurchasedAt}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
+          {/* Submit */}
           <div className="sticky bottom-24 pt-4">
             <button
               type="submit"
-              disabled={loading || codeStatus === "taken" || codeStatus === "invalid" || !stagCode.trim()}
+              disabled={loading || !canSubmit}
               className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1e40af] transition disabled:opacity-50 shadow-xl shadow-[#0f2a5c]/20"
             >
               {loading ? "Registrerer …" : "Registrer gjenstand"}
@@ -267,30 +369,6 @@ export default function NyGjenstandPage() {
         </form>
       </main>
     </>
-  );
-}
-
-function Section({
-  title,
-  required,
-  children,
-}: {
-  title: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-      <h2 className="font-bold text-slate-900 flex items-center gap-2">
-        {title}
-        {required && (
-          <span className="text-[10px] font-black uppercase tracking-widest text-red-600">
-            Påkrevd
-          </span>
-        )}
-      </h2>
-      {children}
-    </div>
   );
 }
 
