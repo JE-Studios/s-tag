@@ -69,19 +69,36 @@ export default function HomePage() {
           className="w-full max-w-md mb-8 text-center"
         >
           <motion.div
-            className="float mx-auto mb-4"
+            className="mx-auto mb-4"
             initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            animate={{
+              scale: 1,
+              rotate: 0,
+            }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           >
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={180}
-              height={130}
-              priority
-              className="object-contain mx-auto"
-            />
+            <motion.div
+              animate={{
+                y: [0, -5, 0, -3, 0],
+                rotateZ: [0, -0.8, 0.8, -0.4, 0],
+                scale: [1, 1.015, 1, 1.008, 1],
+              }}
+              transition={{
+                duration: 6,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "loop",
+              }}
+            >
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                width={180}
+                height={130}
+                priority
+                className="object-contain mx-auto drop-shadow-sm"
+              />
+            </motion.div>
           </motion.div>
           {user ? (
             <>
@@ -105,7 +122,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="w-full max-w-md mb-8 bg-gradient-to-br from-[#0f2a5c] to-[#1e40af] text-white rounded-3xl p-6 shadow-xl shadow-[#0f2a5c]/20"
+            className="w-full max-w-md mb-8 bg-gradient-to-br from-[#0a1e3d] via-[#0f2a5c] to-[#132f5e] text-white rounded-3xl p-6 shadow-xl shadow-[#0a1e3d]/30"
           >
             <div className="flex items-end justify-between mb-4">
               <div>
@@ -129,7 +146,7 @@ export default function HomePage() {
             <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
               <StatMini label="Sikret" value={stats.secured} tone="ok" />
               <StatMini label="Savnet" value={stats.missing} tone={stats.missing > 0 ? "warn" : "ok"} />
-              <StatMini label="Chip aktiv" value={stats.chipActive} tone="ok" />
+              <StatMini label="S-TAG aktiv" value={stats.chipActive} tone="ok" />
             </div>
           </motion.div>
         )}
@@ -221,7 +238,7 @@ export default function HomePage() {
                     initial={{ width: 0 }}
                     animate={{ width: `${(stats!.secured / Math.max(stats!.total, 1)) * 100}%` }}
                     transition={{ duration: 1.4, delay: 0.9, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-[#0f2a5c] to-[#2563eb] rounded-full"
+                    className="h-full bg-gradient-to-r from-[#0a1e3d] to-[#0f2a5c] rounded-full"
                   />
                 </div>
                 <span className="text-[#0f2a5c] text-[10px] font-bold tracking-widest">
