@@ -1,0 +1,52 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  trigger-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Request Claude review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `@claude Review denne PR-en grundig. Bruk følgende sjekkliste:
+
+            ## Regresjonsanalyse
+            1. **Slettet funksjonalitet:** Er noe fjernet som brukes andre steder i kodebasen? Søk etter referanser til slettede funksjoner, komponenter, typer, API-endepunkter og variabler.
+            2. **Overskrevet kode:** Er eksisterende, fungerende kode erstattet med noe annet? Sammenlign før/etter for alle endrede filer — ikke bare diff-hunks, men hele filen.
+            3. **Duplikater:** Lager denne PR-en noe som allerede finnes? Sjekk om det finnes funksjoner, komponenter eller utilities med liknende formål.
+            4. **Bakoverkompatibilitet:** Endres API-responser, funksjonsignaturer, database-skjema eller eksporterte typer? Hvis ja — hva bruker dem?
+            5. **Ubrukt kode fjernet feilaktig:** Er det slettet kode som PR-forfatteren antok var ubrukt, men som faktisk brukes av en annen modul?
+
+            ## Kritiske filer
+            Vær EKSTRA grundig hvis noen av disse er endret:
+            - backend/schema.sql (DB-endringer kan ødelegge eksisterende data)
+            - backend/server.js (API-endringer påvirker hele appen)
+            - frontend/app/lib/api.ts (API-klient brukes av ALLE sider)
+            - frontend/app/lib/auth-context.tsx (auth — brytes denne, kastes brukere ut)
+
+            ## Sikkerhet
+            - Inneholder endringene hardkodede secrets, API-nøkler eller credentials?
+            - Er brukerinput validert på serversiden?
+            - Er SQL-queries parameteriserte (ikke string-concat)?
+
+            ## Svar-format
+            Skriv svaret ditt som en strukturert review med disse seksjonene:
+            - **Sammendrag:** Hva gjør denne PR-en (2-3 setninger)
+            - **Fjernet/erstattet:** Liste over funksjonalitet som er fjernet eller erstattet, med referansesjekk
+            - **Duplikater funnet:** Eller "Ingen"
+            - **Regresjonsrisiko:** Høy / Middels / Lav + begrunnelse
+            - **Sikkerhet:** OK / Merknad / Blokkerende
+            - **Anbefaling:** GODKJENN / ENDRE / BLOKKER + begrunnelse`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: body
+            });
