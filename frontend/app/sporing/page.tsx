@@ -82,7 +82,7 @@ export default function SporingPage() {
       .finally(() => setLoaded(true));
   }, []);
 
-  // Reverse-geocode whenever the selected item changes
+  // Reverse-geocode whenever the selected item changes (debounced 400ms)
   useEffect(() => {
     if (!selectedId) {
       setAddress("");
@@ -91,16 +91,19 @@ export default function SporingPage() {
     const item = items.find((i) => i.id === selectedId);
     if (!item) return;
     setLoadingAddress(true);
-    fetch(`${API_BASE}/api/geocode?lat=${item.lat}&lng=${item.lng}`)
-      .then((r) => r.json())
-      .then((j) => {
-        setAddress(j.display || "Ukjent adresse");
-        setLoadingAddress(false);
-      })
-      .catch(() => {
-        setAddress("Adresse ikke tilgjengelig");
-        setLoadingAddress(false);
-      });
+    const timer = setTimeout(() => {
+      fetch(`${API_BASE}/api/geocode?lat=${item.lat}&lng=${item.lng}`)
+        .then((r) => r.json())
+        .then((j) => {
+          setAddress(j.display || "Ukjent adresse");
+          setLoadingAddress(false);
+        })
+        .catch(() => {
+          setAddress("Adresse ikke tilgjengelig");
+          setLoadingAddress(false);
+        });
+    }, 400);
+    return () => clearTimeout(timer);
   }, [selectedId, items]);
 
   const selected = items.find((i) => i.id === selectedId);
