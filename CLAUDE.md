@@ -1,126 +1,198 @@
 # S-TAG — Claude Code Instruksjoner
 
+> **Denne filen er handoff-dokumentet mellom agenter.**
+> Oppdater ALLTID denne filen hvis du endrer noe som påvirker: deploy, miljøvariabler, tjenester, begrensninger, sider, API-endepunkter, eller status. Hvis du er usikker — oppdater. Neste agent har KUN denne filen som kontekst.
+
 ## Om prosjektet
 
-S-TAG er et nasjonalt register for sikring og sporing av eiendeler. Chip-basert tyveriforebygging og digitalt eierskifte. B2B2C-modell: produsenter embedder chip, brukere parer ikke selv.
+S-TAG er et nasjonalt register for sikring og sporing av eiendeler. Chip-basert tyveriforebygging og digitalt eierskifte. B2B2C-modell: produsenter embedder chip i produkter (jakker, sykler, ski osv.), brukere parer ikke selv — chipen er allerede koblet til produktet ved kjøp.
 
 ## Teknisk stack
 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind v4, react-leaflet, framer-motion, zod
 - **Backend:** Express 5, PostgreSQL (pg), JWT auth (HS256, scrypt), dotenv, cors
 - **Mobile:** Capacitor (Android ferdig, iOS venter)
-- **E-post:** Resend (midlertidig avsender: onboarding@resend.dev — bytt til s-tag.no etter DNS-verifisering)
-- **Deploy:** Vercel (frontend), Railway (backend)
+- **E-post:** Resend (midlertidig avsender: onboarding@resend.dev — bytt til eget domene etter DNS-verifisering)
+- **Deploy:** Vercel (frontend), Railway (backend via GitHub Actions)
 - **Repo:** github.com/JE-Studios/s-tag (privat, branch-beskyttet)
 
 ## Filstruktur
 
 ```
-backend/          Express API + Postgres
-  server.js       Alle endepunkter
-  db.js           Postgres/JSON-fallback datalag
-  schema.sql      Database-skjema (IKKE endre uten eksplisitt godkjenning)
-frontend/         Next.js 16 app
-  app/            App Router sider og komponenter
-  app/lib/        Delte utilities (api.ts, auth-context.tsx)
-  app/components/ Gjenbrukbare komponenter (TopBar, BottomNav, OAuthButtons)
-mobile/           Capacitor wrapper
+backend/
+  server.js             Alle API-endepunkter (vær forsiktig, endringer påvirker hele appen)
+  db.js                 Postgres/JSON-fallback datalag
+  schema.sql            Database-skjema (IKKE endre uten eksplisitt godkjenning)
+  railway.json          Railway build-config
+frontend/
+  app/                  App Router sider og komponenter
+  app/lib/api.ts        API-klient (brukes av ALLE sider — endringer kan brekke alt)
+  app/lib/auth-context.tsx  Auth state (brekker denne = alle brukere kastes ut)
+  app/components/       Gjenbrukbare: TopBar, BottomNav, Toast, OAuthButtons
+  AGENTS.md             Next.js 16-spesifikke agent-regler
+mobile/                 Capacitor wrapper
+.github/workflows/      GitHub Actions (auto-deploy til Railway)
 ```
 
-## Viktige filer (vær ekstra forsiktig med disse)
+## Frontend-sider
 
-- `backend/schema.sql` — Database-skjema. Endringer her kan ødelegge eksisterende data.
-- `backend/server.js` — Alle API-endepunkter. Endringer påvirker hele appen.
-- `frontend/app/lib/api.ts` — API-klient. Brukes av ALLE sider.
-- `frontend/app/lib/auth-context.tsx` — Auth state. Hvis denne brytes, kastes alle brukere ut.
-- `.env.example` — Env-variabler. Må stemme med produksjonsmiljøet.
+| Rute | Beskrivelse | Krever innlogging |
+|------|-------------|-------------------|
+| `/` | Redirect til /hjem eller /logg-inn | — |
+| `/hjem` | Dashboard med oversikt og statistikk | Ja |
+| `/sporing` | Kart med live-posisjon (Leaflet) | Ja |
+| `/kartotek` | Gjenstandsregister med CRUD | Ja |
+| `/eierskifte` | Overføring/salg mellom brukere | Ja |
+| `/varsler` | Notifikasjoner | Ja |
+| `/innstillinger` | Profil, samtykke, kontoinnstillinger | Ja |
+| `/kontakt` | Tilbakemelding/bug-rapport | Ja |
+| `/logg-inn` | Innlogging (e-post + Google OAuth) | Nei |
+| `/registrer` | Ny bruker | Nei |
+| `/glemt-passord` | Send tilbakestillings-e-post | Nei |
+| `/tilbakestill-passord` | Nytt passord via token fra e-post | Nei |
+| `/funnet` | Offentlig: rapporter funnet gjenstand via QR/kode | Nei |
+| `/personvern` | Personvernerklæring | Nei |
+| `/vilkar` | Vilkår for bruk | Nei |
+
+Auth-guard er i `app/lib/auth-context.tsx`. Ruter som ikke krever innlogging er listet i `PUBLIC_ROUTES`.
+
+## Database
+
+| Tabell | Formål |
+|--------|--------|
+| `users` | Brukerkontoer med profil, samtykke, varselsinnstillinger |
+| `items` | Gjenstander med posisjon, chip-status, geofence, telemetri |
+| `transfers` | Eierskifte med salgskontrakt og BankID-signaturer (Criipto) |
+| `chips` | Whitelist over produserte S-TAG-chiper (fylles av produsent/admin) |
+| `chip_pings` | Posisjonsdata/telemetri fra chiper |
+| `notifications` | In-app varsler til brukere |
+| `item_events` | Aktivitetslogg per gjenstand |
+| `found_reports` | Rapporter fra folk som finner gjenstander (offentlig, uten auth) |
+| `feedback` | Tilbakemeldinger fra brukere |
+
+Skjemaet er i `backend/schema.sql`. Alle migrasjoner er idempotente (IF NOT EXISTS). Kjøres automatisk ved oppstart av server.js.
 
 ## Regler
 
-### Generelt
+### Kode
 - Skriv all kode på engelsk, all UI-tekst på norsk (bokmål)
 - Bruk TypeScript for alt i frontend
 - Ikke installer nye npm-pakker uten god grunn
-- Hver endring = én feature branch + én PR. Aldri push direkte til main.
-- **Oppdater ALLTID denne filen (CLAUDE.md)** hvis du endrer noe som påvirker deploy, miljøvariabler, nye tjenester, nye begrensninger, eller annen info fremtidige agenter trenger
+- Les ALLTID filen du skal endre FØR du endrer den
+- Sjekk om funksjoner/komponenter du fjerner brukes andre steder (grep)
+- Ikke slett eller skriv om eksisterende funksjonalitet uten at det er bedt om
+- Behold eksisterende API-kontrakter (response-format, HTTP-metoder, URL-er)
 
 ### Sikkerhet
 - ALDRI hardkod API-nøkler, secrets eller credentials
 - ALDRI commit .env-filer
 - Valider all brukerinput på serversiden (backend/server.js)
 - Bruk parameteriserte queries mot Postgres (aldri string-concat i SQL)
+- CORS tillater ALDRI wildcard `*` — kun eksplisitte domener
 
-### Når du endrer kode
-- Les ALLTID filen du skal endre FØR du endrer den
-- Sjekk om funksjoner/komponenter du fjerner brukes andre steder (grep i kodebasen)
-- Ikke slett eller skriv om eksisterende funksjonalitet med mindre det er eksplisitt bedt om
-- Behold eksisterende API-kontrakter (response-format, HTTP-metoder, URL-er)
-- Test endringene lokalt før du committer
+### Commit, PR og merge
 
-### Commit og PR
-- Skriv commit-meldinger på norsk
-- En PR per feature/bugfix
-- Beskriv HVA du endret og HVORFOR i PR-beskrivelsen
+Hver endring = en feature branch + en PR. Aldri push direkte til main.
+
+Commit-meldinger på norsk. Beskriv HVA og HVORFOR i PR-beskrivelsen.
+
+**Branch protection er aktiv (Ruleset ID 14845507).** Denne prosessen MÅ følges for HVER merge:
+
+```bash
+# 1. Deaktiver
+gh api repos/JE-Studios/s-tag/rulesets/14845507 --method PUT --field enforcement=disabled
+# 2. Merge
+gh pr merge <nr> --squash --delete-branch
+# 3. Aktiver UMIDDELBART etterpå
+gh api repos/JE-Studios/s-tag/rulesets/14845507 --method PUT --field enforcement=active
+```
+
+Glem ALDRI steg 3. Branch protection skal alltid være aktiv når du er ferdig.
 
 ## Produksjonsmiljø
 
 | Tjeneste | URL | Plattform |
 |----------|-----|-----------|
-| Frontend | https://s-tag-ten.vercel.app | Vercel (auto-deploy fra main) |
-| Backend  | https://s-tag-production.up.railway.app | Railway (auto-deploy fra main, root: /backend) |
+| Frontend | https://s-tag-ten.vercel.app | Vercel |
+| Backend  | https://s-tag-production.up.railway.app | Railway |
 | Database | PostgreSQL | Railway (tilkoblet via DATABASE_URL) |
 
-### Railway miljøvariabler (backend)
+### Railway miljøvariabler
 
 | Variabel | Beskrivelse |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string (satt av Railway) |
 | `JWT_SECRET` | Hemmelig nøkkel for JWT-signering |
-| `GOOGLE_CLIENT_ID` | Google OAuth Client ID (165312962290-...apps.googleusercontent.com) |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 | `RESEND_API_KEY` | API-nøkkel for Resend e-posttjeneste |
 | `APP_BASE_URL` | Frontend-URL for lenker i e-post (https://s-tag-ten.vercel.app) |
-| `CORS_ORIGINS` | Valgfri: ekstra tillatte CORS-domener (kommaseparert, IKKE bruk wildcard *) |
-| `FEEDBACK_FROM` | Valgfri: avsender-adresse for e-post (default: onboarding@resend.dev) |
+| `CORS_ORIGINS` | Valgfri: ekstra CORS-domener (kommaseparert, IKKE wildcard) |
+| `FEEDBACK_FROM` | Valgfri: avsenderadresse for e-post (default: onboarding@resend.dev) |
 
-### Vercel miljøvariabler (frontend)
+### Vercel miljøvariabler
 
 | Variabel | Beskrivelse |
 |----------|-------------|
 | `NEXT_PUBLIC_API_URL` | Backend-URL (https://s-tag-production.up.railway.app) |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID (samme som backend) |
 
-### GitHub Actions (auto-deploy)
+### GitHub Secrets
 
-Backend deployes automatisk til Railway via GitHub Actions (`.github/workflows/deploy-backend.yml`).
-Triggeren er push til main med endringer i `backend/**`. Workflowen bruker Railway CLI med `RAILWAY_TOKEN` GitHub Secret.
+| Secret | Beskrivelse |
+|--------|-------------|
+| `RAILWAY_TOKEN` | Railway API-token for auto-deploy via GitHub Actions. Satt opp 2026-04-09. |
 
-Railway sin innebygde git-integrasjon fungerer IKKE pålitelig med squash merges (commit SHA finnes ikke i repo). Derfor bruker vi GitHub Actions i stedet.
+## Deploy (CI/CD)
 
-**GitHub Secret:** `RAILWAY_TOKEN` — Railway API-token med tilgang til prosjektet. Satt opp 2026-04-09.
+### Frontend (Vercel)
+Automatisk ved push til main. Alle filer. Ingen konfigurasjon nødvendig.
 
-### Deploy-notater
+### Backend (GitHub Actions -> Railway)
+Automatisk ved push til main med endringer i `backend/**`.
 
-- **Vercel** deployer automatisk ved push til main (alle filer)
-- **Railway** deployes via GitHub Actions ved push til main (kun backend/**-endringer)
-- Backend-kode har produksjons-fallbacks: APP_BASE_URL → Vercel-URL, API_BASE → Railway-URL
-- CORS tillater ALDRI wildcard * — kun eksplisitte domener + *.vercel.app preview-deploys
+Workflow-filen: `.github/workflows/deploy-backend.yml`
 
-### Kjente begrensninger
+Railway sin innebygde git-integrasjon fungerer IKKE med squash merges (commit SHA finnes ikke i repo etter squash). Derfor bruker vi GitHub Actions med Railway CLI i stedet.
 
-- **Resend e-post:** onboarding@resend.dev kan kun sende til kontoeier (eliah.slette@gmail.com). Andre brukere får ikke e-post. Krever domene-verifisering i Resend med eget domene.
-- **Apple-innlogging:** Ikke konfigurert. Krever Apple Developer Program ($99/år) + ID-verifisering.
-- **Branch protection:** Ruleset ID 14845507. Må slås av midlertidig for merge, deretter aktiveres igjen.
+### Fallback-verdier i koden
+- Backend (`server.js`): `APP_BASE_URL` faller tilbake til Vercel-URL i produksjon
+- Frontend (`api.ts`): `API_BASE` faller tilbake til Railway-URL i produksjon
 
-### GitHub branch protection (automatisering)
+Disse fallbackene finnes slik at appen fungerer selv uten at env-variabler er satt, men env-variablene BØR alltid være konfigurert eksplisitt.
 
-```bash
-# Deaktiver
-gh api repos/JE-Studios/s-tag/rulesets/14845507 --method PUT --field enforcement=disabled
-# Merge PR
-gh pr merge <nr> --squash --delete-branch
-# Aktiver
-gh api repos/JE-Studios/s-tag/rulesets/14845507 --method PUT --field enforcement=active
-```
+## Nåværende status
+
+Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
+
+### Fungerer
+- Registrering og innlogging (e-post + passord + Google OAuth)
+- Glemt passord / tilbakestill passord (e-post sendes kun til kontoeier, se begrensninger)
+- Gjenstands-CRUD (opprett, rediger, slett)
+- Chip-paring og -unparing
+- Eierskifte med salgskontrakt og BankID-signering (Criipto)
+- Kart med live-sporing og geofence
+- Notifikasjoner (in-app)
+- Posisjonssamtykke respekteres i kart og innstillinger
+- Tilbakemelding/kontaktskjema
+- Funnet-gjenstand offentlig flyt (QR-kode -> rapporter funn)
+- CORS er sikkert (kun eksplisitte domener, aldri wildcard)
+- Auto-deploy: frontend via Vercel, backend via GitHub Actions
+
+### Blokkert
+- **E-post til andre brukere:** Resend sin test-avsender (`onboarding@resend.dev`) kan KUN sende til kontoeier (`eliah.slette@gmail.com`). Alle andre brukere får ikke e-post (glemt passord, varsler osv.). Krever: kjøpe eget domene + verifisere DNS i Resend.
+- **Apple-innlogging (Sign in with Apple):** Krever Apple Developer Program ($99/år) + ID-verifisering. Ikke startet.
+
+### Neste steg
+- Kjøpe domene og verifisere i Resend -> e-post fungerer for alle brukere
+- Apple Developer Program -> Sign in with Apple
+- Mobilapp: Capacitor er satt opp, Android bygger, iOS venter på Apple Developer Program
+
+## Kjente begrensninger
+
+- **Resend e-post:** `onboarding@resend.dev` er en test-avsender som kun kan sende til kontoeier. Trenger eget domene.
+- **Apple-innlogging:** Ikke konfigurert. Trenger Apple Developer Program.
+- **schema.sql:** Endringer kan ødelegge eksisterende data. Ikke endre uten eksplisitt godkjenning fra Eliah.
+- **Next.js 16:** Har breaking changes fra tidligere versjoner. Les `frontend/AGENTS.md` før du skriver frontend-kode.
 
 ## Lokal utvikling
 
