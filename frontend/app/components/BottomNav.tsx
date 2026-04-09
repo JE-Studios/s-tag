@@ -5,12 +5,12 @@ import { motion } from "framer-motion";
 
 const tabs = [
   { href: "/hjem", label: "Hjem", icon: "home" },
-  { href: "/kartotek", label: "Register", icon: "inventory_2" },
-  { href: "/sporing", label: "Søk", icon: "search" },
+  { href: "/kartotek", label: "Mine ting", icon: "inventory_2" },
+  { href: "/sporing", label: "Sporing", icon: "location_on" },
   { href: "/innstillinger", label: "Profil", icon: "person" },
 ];
 
-const HIDDEN_ROUTES = ["/", "/logg-inn", "/registrer"];
+const HIDDEN_ROUTES = ["/", "/logg-inn", "/registrer", "/glemt-passord", "/tilbakestill-passord"];
 
 export default function BottomNav() {
   const pathname = usePathname();

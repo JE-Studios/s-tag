@@ -64,6 +64,11 @@ export default function LoginPage() {
                 autoComplete="current-password"
               />
             </div>
+            <div className="flex justify-end">
+              <Link href="/glemt-passord" className="text-xs text-[#0f2a5c] font-semibold hover:underline">
+                Glemt passord?
+              </Link>
+            </div>
             {error && (
               <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
             )}

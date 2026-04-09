@@ -5,6 +5,7 @@ export const API_BASE: string =
     : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const TOKEN_KEY = "stag_token";
+const CONSENT_VERSION = "2026-04";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -155,7 +156,7 @@ export const auth = {
         password,
         name,
         acceptTerms,
-        consentVersion: "2026-04",
+        consentVersion: CONSENT_VERSION,
       }),
     }),
   login: (email: string, password: string) =>
@@ -187,8 +188,18 @@ export const auth = {
         idToken,
         name,
         acceptTerms,
-        consentVersion: "2026-04",
+        consentVersion: CONSENT_VERSION,
       }),
+    }),
+  forgotPassword: (email: string) =>
+    request<{ ok: true }>("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+  resetPassword: (token: string, newPassword: string) =>
+    request<{ ok: true }>("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword }),
     }),
   deleteAccount: () => request<{ ok: true }>("/api/auth/me", { method: "DELETE" }),
   exportData: async () => {

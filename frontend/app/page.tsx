@@ -150,7 +150,7 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="mt-6 text-xs text-slate-400 tracking-wide">
-              Tilgjengelig på iOS, Android og web · Helt gratis · Ingen kredittkort
+              Tilgjengelig på Android og web · iOS kommer snart · Helt gratis
             </p>
           </motion.div>
         </div>

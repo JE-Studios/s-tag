@@ -25,6 +25,8 @@ const PUBLIC_ROUTES = [
   "/",
   "/logg-inn",
   "/registrer",
+  "/glemt-passord",
+  "/tilbakestill-passord",
   "/om",
   "/personvern",
   "/vilkar",
@@ -102,6 +104,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     router.replace("/");
   };
+
+  // Vis en loading-splash mens vi sjekker om brukeren er innlogget
+  if (loading) {
+    const isPublic =
+      PUBLIC_ROUTES.includes(pathname) ||
+      PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+    // Offentlige sider vises direkte (landing, login, registrer)
+    if (!isPublic) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+          <div className="w-10 h-10 rounded-xl bg-[#0f2a5c]/5 flex items-center justify-center mb-4 animate-pulse">
+            <span
+              className="material-symbols-outlined text-[#0f2a5c] text-2xl"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              shield
+            </span>
+          </div>
+          <div className="h-1 w-24 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-full w-1/2 bg-[#0f2a5c]/40 rounded-full animate-[shimmer_1.5s_ease-in-out_infinite]"
+              style={{ animation: "pulse 1.5s ease-in-out infinite" }}
+            />
+          </div>
+        </div>
+      );
+    }
+  }
 
   return (
     <AuthContext.Provider
