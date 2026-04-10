@@ -194,7 +194,7 @@ app.get("/api/health", h(async (_req, res) => {
   res.status(dbHealth.ok ? 200 : 503).json({
     status,
     service: "S-TAG backend",
-    build: "2026-04-10a",
+    build: "2026-04-10b",
     store: dbHealth.store,
     db: dbHealth.ok ? "up" : "down",
     time: new Date().toISOString(),
@@ -848,6 +848,13 @@ app.get("/api/items/:id/events", requireAuth, h(async (req, res) => {
   res.json(events);
 }));
 
+app.get("/api/items/:id/found-reports", requireAuth, h(async (req, res) => {
+  const item = await db.getItem(req.params.id, req.userId);
+  if (!item) return res.status(404).json({ error: "Not found" });
+  const reports = await db.listFoundReports(req.params.id);
+  res.json(reports);
+}));
+
 // ============================================================================
 // NOTIFICATIONS
 // ============================================================================
@@ -913,6 +920,14 @@ app.post("/api/found/:code/report", foundLimiter, h(async (req, res) => {
     lat: typeof lat === "number" ? lat : null,
     lng: typeof lng === "number" ? lng : null,
   });
+  // Logg i aktivitetslogg
+  const detail = finderName ? `Rapport fra ${finderName}: ${message || ""}` : message || "Funnrapport mottatt";
+  await db.createItemEvent({ itemId: item.id, userId: null, kind: "found_report", detail });
+  // Automatisk marker som funnet hvis gjenstanden er savnet
+  if (item.status === "missing") {
+    await db.updateItem(item.id, item.ownerId, { status: "secured", lost_message: null });
+    await db.createItemEvent({ itemId: item.id, userId: null, kind: "marked_found", detail: "Automatisk markert som funnet etter funnrapport" });
+  }
   await db.createNotification({
     userId: item.ownerId,
     kind: "found_report",

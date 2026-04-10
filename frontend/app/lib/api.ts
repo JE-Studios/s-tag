@@ -150,6 +150,17 @@ export type ItemEvent = {
   createdAt: string;
 };
 
+export type FoundReport = {
+  id: number;
+  itemId: string;
+  finderName: string | null;
+  finderContact: string | null;
+  message: string | null;
+  lat: number | null;
+  lng: number | null;
+  createdAt: string;
+};
+
 export type Stats = {
   total: number;
   secured: number;
@@ -242,6 +253,7 @@ export const items = {
   markFound: (id: string) =>
     request<Item>(`/api/items/${id}/found`, { method: "POST" }),
   events: (id: string) => request<ItemEvent[]>(`/api/items/${id}/events`),
+  foundReports: (id: string) => request<FoundReport[]>(`/api/items/${id}/found-reports`),
 };
 
 // ---- Chip ----
