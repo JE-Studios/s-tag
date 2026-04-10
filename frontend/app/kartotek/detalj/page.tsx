@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import TopBar from "../../components/TopBar";
 import PhotoPicker from "../../components/PhotoPicker";
-import { items as itemsApi, ItemEvent, Item, API_BASE } from "../../lib/api";
+import { items as itemsApi, ItemEvent, Item, FoundReport, API_BASE } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { useToast } from "../../components/Toast";
 import { useTranslation } from "../../lib/i18n";
@@ -20,6 +20,7 @@ const EVENT_ICON: Record<string, string> = {
   marked_lost: "location_off",
   marked_found: "check_circle",
   transferred: "swap_horiz",
+  found_report: "person_pin_circle",
 };
 
 export default function ItemDetailPageWrapper() {
@@ -39,6 +40,7 @@ function ItemDetailPage() {
   const id = searchParams.get("id") || "";
   const [item, setItem] = useState<Item | null>(null);
   const [events, setEvents] = useState<ItemEvent[]>([]);
+  const [foundReports, setFoundReports] = useState<FoundReport[]>([]);
   const [address, setAddress] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [photoEdit, setPhotoEdit] = useState<string | null>(null);
@@ -80,6 +82,7 @@ function ItemDetailPage() {
             .catch(() => {});
         }
         itemsApi.events(id).then(setEvents).catch(() => setEvents([]));
+        itemsApi.foundReports(id).then(setFoundReports).catch(() => setFoundReports([]));
       })
       .catch(() => setLoading(false));
   }, [id]);
@@ -411,6 +414,39 @@ function ItemDetailPage() {
             {t("detalj.chip.info")}
           </p>
         </div>
+        )}
+
+        {/* Funnrapporter */}
+        {foundReports.length > 0 && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <span className="material-symbols-outlined text-emerald-700 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>person_pin_circle</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t("detalj.foundReports")}</p>
+                <p className="text-slate-700 font-bold text-sm">{t("detalj.foundReportsCount", foundReports.length)}</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {foundReports.map((r) => (
+                <div key={r.id} className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-bold text-emerald-900">
+                      {r.finderName || t("detalj.anonymousFinder")}
+                    </p>
+                    <p className="text-[10px] text-slate-400">{timeAgo(r.createdAt)}</p>
+                  </div>
+                  {r.message && <p className="text-sm text-slate-700 mb-2">{r.message}</p>}
+                  {r.finderContact && (
+                    <p className="text-xs text-slate-500">
+                      <span className="font-semibold">{t("detalj.contact")}:</span> {r.finderContact}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Aktivitetslogg */}

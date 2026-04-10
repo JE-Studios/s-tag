@@ -1193,6 +1193,26 @@ async function createFoundReport({ itemId, finderName, finderContact, message, l
   return true;
 }
 
+async function listFoundReports(itemId) {
+  if (USE_PG) {
+    const r = await pool.query(
+      `SELECT * FROM found_reports WHERE item_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      [itemId]
+    );
+    return r.rows.map((row) => ({
+      id: row.id,
+      itemId: row.item_id,
+      finderName: row.finder_name,
+      finderContact: row.finder_contact,
+      message: row.message,
+      lat: row.lat,
+      lng: row.lng,
+      createdAt: row.created_at,
+    }));
+  }
+  return [];
+}
+
 // ----- FEEDBACK -----
 async function createFeedback({ userId, name, email, kind, subject, message, userAgent, path }) {
   if (USE_PG) {
@@ -1299,7 +1319,7 @@ module.exports = {
   createNotification, listNotifications, markNotificationRead, markAllNotificationsRead, deleteAllNotifications, countUnreadNotifications,
   createItemEvent, listItemEvents,
   getUserStats,
-  findItemByPublicCode, createFoundReport,
+  findItemByPublicCode, createFoundReport, listFoundReports,
   createFeedback, listFeedback,
   cleanupOldPings,
 };

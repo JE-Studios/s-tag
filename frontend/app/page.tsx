@@ -269,6 +269,34 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Funnet noe? */}
+      <section className="py-20 px-6 bg-emerald-50 border-y border-emerald-100">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-white text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+              person_pin_circle
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight text-[#0f2a5c] mb-4">
+            Funnet noe?
+          </h2>
+          <p className="text-slate-600 mb-8 max-w-xl mx-auto leading-relaxed">
+            Har du funnet en gjenstand med S-TAG-kode? Rapporter funnet slik at eieren kan
+            finne tilbake til tingen sin. Du trenger ikke konto — bare koden.
+          </p>
+          <Link
+            href="/funnet"
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20"
+          >
+            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>search</span>
+            Rapporter funnet gjenstand
+          </Link>
+          <p className="mt-4 text-xs text-slate-400">
+            Skriv inn S-TAG-koden fra gjenstanden for å sende melding til eieren
+          </p>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 px-6 bg-[#0f2a5c] text-white">
         <div className="max-w-3xl mx-auto text-center">
