@@ -23,8 +23,8 @@ export default function PersonvernPage() {
           </p>
           <p>
             Kontakt personvern:{" "}
-            <a href="mailto:marianne@s-tag.no" className="text-[#0f2a5c] font-bold">
-              marianne@s-tag.no
+            <a href="mailto:support@s-tag.no" className="text-[#0f2a5c] font-bold">
+              support@s-tag.no
             </a>
             . Henvendelser om innsyn, retting, sletting og klager håndteres av Marianne som
             personvernkontakt. S-TAG har ikke plikt til å utnevne personvernombud (DPO)

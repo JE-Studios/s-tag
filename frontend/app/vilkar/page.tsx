@@ -29,8 +29,8 @@ export default function VilkarPage() {
           </p>
           <p>
             Kontakt:{" "}
-            <a href="mailto:marianne@s-tag.no" className="text-[#0f2a5c] font-bold">
-              marianne@s-tag.no
+            <a href="mailto:support@s-tag.no" className="text-[#0f2a5c] font-bold">
+              support@s-tag.no
             </a>
             .
           </p>
@@ -173,8 +173,8 @@ export default function VilkarPage() {
         <Section title="15. Klager og tvisteløsning">
           <p>
             Har du en klage, ta kontakt med oss først på{" "}
-            <a href="mailto:marianne@s-tag.no" className="text-[#0f2a5c] font-bold">
-              marianne@s-tag.no
+            <a href="mailto:support@s-tag.no" className="text-[#0f2a5c] font-bold">
+              support@s-tag.no
             </a>
             . Vi tilstreber å svare innen 14 dager. Som forbruker kan du også klage til
             Forbrukertilsynet eller bringe saken inn for Forbruker­klage­utvalget.

@@ -84,8 +84,8 @@ export default function KontaktPage() {
               <ContactRow
                 icon="mail"
                 label={t("contact.email")}
-                value="marianne@s-tag.no"
-                href="mailto:marianne@s-tag.no"
+                value="support@s-tag.no"
+                href="mailto:support@s-tag.no"
               />
               <ContactRow
                 icon="schedule"
