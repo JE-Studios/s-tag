@@ -98,6 +98,7 @@ export type Item = {
   photoUrl?: string | null;
   publicCode?: string | null;
   lostMessage?: string | null;
+  receiptUrl?: string | null;
 };
 
 export type Transfer = {

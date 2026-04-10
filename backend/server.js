@@ -654,40 +654,41 @@ app.post("/api/items", requireAuth, h(async (req, res) => {
     return res.status(400).json({ error: "Navn er påkrevd" });
   }
 
-  // S-TAG-koden er påkrevd og må finnes i chip-registeret (whitelist).
-  // Registeret fylles av admin FØR chipen sendes til produsenten, så en
-  // bruker kan bare registrere en gjenstand hvis chipen faktisk er ekte.
-  const stagCode = String(body.chipUid || body.stagCode || "").trim().toUpperCase();
-  if (!stagCode) {
-    return res.status(400).json({ error: "S-TAG-kode er påkrevd" });
-  }
-  if (stagCode.length < 6) {
-    return res.status(400).json({ error: "S-TAG-kode virker ugyldig" });
-  }
-  if (!/^[A-Z0-9-]+$/.test(stagCode)) {
-    return res.status(400).json({ error: "Ugyldige tegn i S-TAG-kode" });
-  }
+  // S-TAG-kode er valgfri. Uten kode registreres gjenstanden som ren
+  // verdidokumentasjon (kvitteringer, forsikringsbevis osv.). Med kode
+  // aktiveres chip-sporing i tillegg.
+  const rawCode = String(body.chipUid || body.stagCode || "").trim().toUpperCase();
+  const stagCode = rawCode || null;
 
-  const existing = await db.findItemByChipUid(stagCode);
-  if (existing) {
-    return res.status(409).json({ error: "Denne S-TAG-koden er allerede registrert" });
-  }
+  if (stagCode) {
+    if (stagCode.length < 6) {
+      return res.status(400).json({ error: "S-TAG-kode virker ugyldig" });
+    }
+    if (!/^[A-Z0-9-]+$/.test(stagCode)) {
+      return res.status(400).json({ error: "Ugyldige tegn i S-TAG-kode" });
+    }
 
-  // Whitelist-sjekk mot chip-registeret.
-  if (STRICT_CHIP_REGISTER) {
-    const chip = await db.getChipByUid(stagCode);
-    if (!chip) {
-      return res.status(404).json({
-        error: "Ukjent S-TAG-kode. Sjekk at du har skrevet koden riktig — den står på chipen eller produktets emballasje.",
-      });
+    const existing = await db.findItemByChipUid(stagCode);
+    if (existing) {
+      return res.status(409).json({ error: "Denne S-TAG-koden er allerede registrert" });
     }
-    if (chip.status === "disabled") {
-      return res.status(410).json({ error: "Denne S-TAG-chipen er deaktivert. Kontakt support." });
-    }
-    if (chip.status === "claimed") {
-      return res.status(409).json({
-        error: "Denne S-TAG-chipen er allerede registrert på en annen konto.",
-      });
+
+    // Whitelist-sjekk mot chip-registeret.
+    if (STRICT_CHIP_REGISTER) {
+      const chip = await db.getChipByUid(stagCode);
+      if (!chip) {
+        return res.status(404).json({
+          error: "Ukjent S-TAG-kode. Sjekk at du har skrevet koden riktig — den står på chipen eller produktets emballasje.",
+        });
+      }
+      if (chip.status === "disabled") {
+        return res.status(410).json({ error: "Denne S-TAG-chipen er deaktivert. Kontakt support." });
+      }
+      if (chip.status === "claimed") {
+        return res.status(409).json({
+          error: "Denne S-TAG-chipen er allerede registrert på en annen konto.",
+        });
+      }
     }
   }
 
@@ -701,9 +702,9 @@ app.post("/api/items", requireAuth, h(async (req, res) => {
     status: "secured",
     category: body.category || "other",
     chipUid: stagCode,
-    chipPairedAt: now,
+    chipPairedAt: stagCode ? now : null,
     chipLastPing: null,
-    chipStatus: "paired",
+    chipStatus: stagCode ? "paired" : "unpaired",
     lat: body.lat ?? 59.9139,
     lng: body.lng ?? 10.7522,
     lastSeen: "Registrert nettopp",
@@ -717,15 +718,14 @@ app.post("/api/items", requireAuth, h(async (req, res) => {
     valueNok: body.valueNok ?? null,
     purchasedAt: body.purchasedAt || null,
     photoUrl: body.photoUrl || null,
+    receiptUrl: body.receiptUrl || null,
     publicCode,
   };
   const saved = await db.createItem(newItem);
   await db.createItemEvent({ itemId: saved.id, userId: req.userId, kind: "created", detail: saved.name });
 
-  // Markér chipen som "claimed" i registeret. Race condition: to brukere som
-  // prøver å registrere samme kode samtidig. PG-grenen bruker FOR UPDATE og
-  // rapporterer ok:false — da må vi rulle tilbake item-opprettelsen.
-  if (STRICT_CHIP_REGISTER) {
+  // Markér chipen som "claimed" i registeret (kun når kode er oppgitt).
+  if (stagCode && STRICT_CHIP_REGISTER) {
     const claim = await db.claimChip(stagCode, req.userId, saved.id);
     if (!claim.ok) {
       await db.deleteItem(saved.id, req.userId);

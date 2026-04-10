@@ -16,9 +16,14 @@ export default function NyGjenstandPage() {
     { id: "electronics", label: t("kartotekNy.catElectronics"), icon: "devices" },
     { id: "bike", label: t("kartotekNy.catBike"), icon: "pedal_bike" },
     { id: "vehicle", label: t("kartotekNy.catVehicle"), icon: "directions_car" },
+    { id: "clothing", label: t("kartotekNy.catClothing"), icon: "checkroom" },
+    { id: "sport", label: t("kartotekNy.catSport"), icon: "downhill_skiing" },
     { id: "bag", label: t("kartotekNy.catBag"), icon: "backpack" },
     { id: "tools", label: t("kartotekNy.catTools"), icon: "construction" },
     { id: "jewellery", label: t("kartotekNy.catJewellery"), icon: "diamond" },
+    { id: "instrument", label: t("kartotekNy.catInstrument"), icon: "piano" },
+    { id: "art", label: t("kartotekNy.catArt"), icon: "palette" },
+    { id: "furniture", label: t("kartotekNy.catFurniture"), icon: "chair" },
     { id: "document", label: t("kartotekNy.catDocument"), icon: "description" },
     { id: "other", label: t("kartotekNy.catOther"), icon: "category" },
   ];
@@ -42,6 +47,7 @@ export default function NyGjenstandPage() {
   const [valueNok, setValueNok] = useState("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState("");
 
   useEffect(() => {
     const trimmed = stagCode.trim().toUpperCase();
@@ -80,24 +86,21 @@ export default function NyGjenstandPage() {
       return;
     }
     const code = stagCode.trim().toUpperCase();
-    if (!code) {
-      toast.error(t("kartotekNy.codeRequired"));
-      return;
-    }
-    if (code.length < 6) {
-      toast.error(t("kartotekNy.codeInvalid"));
-      return;
-    }
-    if (codeStatus === "taken") {
-      toast.error(t("kartotekNy.codeTaken"));
-      return;
+    if (code) {
+      if (code.length < 6) {
+        toast.error(t("kartotekNy.codeInvalid"));
+        return;
+      }
+      if (codeStatus === "taken") {
+        toast.error(t("kartotekNy.codeTaken"));
+        return;
+      }
     }
     setLoading(true);
     try {
       const payload: Record<string, unknown> = {
         name: name.trim(),
         category,
-        chipUid: code,
         description: description.trim() || undefined,
         brand: brand.trim() || undefined,
         model: model.trim() || undefined,
@@ -106,7 +109,11 @@ export default function NyGjenstandPage() {
         valueNok: valueNok ? Number(valueNok) : undefined,
         purchasedAt: purchasedAt || undefined,
         photoUrl: photoUrl || undefined,
+        receiptUrl: receiptUrl || undefined,
       };
+      if (code) {
+        payload.chipUid = code;
+      }
       if (hasGeoConsent() && geo.lat != null && geo.lng != null) {
         payload.lat = geo.lat;
         payload.lng = geo.lng;
@@ -114,7 +121,7 @@ export default function NyGjenstandPage() {
       const created = await itemsApi.create(
         payload as Parameters<typeof itemsApi.create>[0]
       );
-      toast.success(`${created.name} er registrert`);
+      toast.success(t("kartotekNy.registered", created.name));
       router.replace(`/kartotek/detalj?id=${created.id}`);
     } catch (err: unknown) {
       const msg =
@@ -124,15 +131,12 @@ export default function NyGjenstandPage() {
     }
   };
 
-  const canSubmit =
-    name.trim() &&
-    stagCode.trim().length >= 6 &&
-    codeStatus !== "taken" &&
-    codeStatus !== "invalid";
+  const codeValid = !stagCode.trim() || (stagCode.trim().length >= 6 && codeStatus !== "taken" && codeStatus !== "invalid");
+  const canSubmit = !!name.trim() && codeValid;
 
   return (
     <>
-      <TopBar showBack title="Ny gjenstand" />
+      <TopBar showBack title={t("kartotekNy.title")} />
 
       {/* ── Branded header ── */}
       <div className="bg-[#0f2a5c] pt-28 pb-14 px-6">
@@ -148,7 +152,7 @@ export default function NyGjenstandPage() {
                 className="material-symbols-outlined text-white/80 text-xl"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
-                nfc
+                shield
               </span>
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
@@ -167,89 +171,13 @@ export default function NyGjenstandPage() {
       {/* ── Form ── */}
       <main className="px-6 pb-40 -mt-6 relative z-10">
         <form onSubmit={submit} className="max-w-2xl mx-auto space-y-4">
-          {/* S-TAG-kode — overlapper navy/hvit */}
-          <div
-            className={`bg-white rounded-2xl p-5 shadow-lg space-y-3 border transition-colors ${
-              codeStatus === "available"
-                ? "border-emerald-300"
-                : codeStatus === "taken" || codeStatus === "invalid"
-                ? "border-red-300"
-                : "border-slate-200"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-                  codeStatus === "available"
-                    ? "bg-emerald-50"
-                    : "bg-slate-50"
-                }`}
-              >
-                <span
-                  className={`material-symbols-outlined text-lg transition-colors ${
-                    codeStatus === "available"
-                      ? "text-emerald-600"
-                      : "text-[#0f2a5c]"
-                  }`}
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  {codeStatus === "available" ? "verified" : "qr_code_2"}
-                </span>
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                {t("kartotekNy.stagCode")}
-              </p>
-            </div>
-            <input
-              type="text"
-              autoCapitalize="characters"
-              autoComplete="off"
-              spellCheck={false}
-              autoFocus
-              value={stagCode}
-              onChange={(e) => setStagCode(e.target.value.toUpperCase())}
-              placeholder="ST-XXXX-XXXX"
-              className={`w-full font-mono text-lg tracking-wider bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition ${
-                codeStatus === "available"
-                  ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
-                  : codeStatus === "taken" || codeStatus === "invalid"
-                  ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-slate-200 focus:border-[#0f2a5c] focus:ring-[#0f2a5c]/10"
-              }`}
-              required
-            />
-            <div className="text-xs h-5">
-              {codeStatus === "checking" && (
-                <span className="text-slate-400">{t("kartotekNy.checking")}</span>
-              )}
-              {codeStatus === "available" && (
-                <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">
-                    check_circle
-                  </span>
-                  {t("kartotekNy.available")}
-                </span>
-              )}
-              {codeStatus === "taken" && (
-                <span className="text-red-600 font-semibold">
-                  {t("kartotekNy.taken")}
-                </span>
-              )}
-              {codeStatus === "invalid" && (
-                <span className="text-red-600 font-semibold">
-                  {t("kartotekNy.tooShort")}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Grunnleggende */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          {/* Grunnleggende — overlapper navy/hvit */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-200 space-y-4">
             <Input
               label={t("common.name")}
               value={name}
               onChange={setName}
-              placeholder='F.eks. MacBook Pro 14"'
+              placeholder={t("kartotekNy.namePlaceholder")}
               required
             />
             <div>
@@ -279,6 +207,99 @@ export default function NyGjenstandPage() {
               </div>
             </div>
             <PhotoPicker value={photoUrl} onChange={setPhotoUrl} />
+          </div>
+
+          {/* Kvittering / dokumentasjon */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#0f2a5c] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  {t("kartotekNy.receipt")}
+                </p>
+                <p className="text-[11px] text-slate-400 leading-snug">{t("kartotekNy.receiptHint")}</p>
+              </div>
+            </div>
+            <PhotoPicker value={receiptUrl} onChange={setReceiptUrl} />
+          </div>
+
+          {/* S-TAG-kode (valgfri) */}
+          <div
+            className={`bg-white rounded-2xl p-5 shadow-sm space-y-3 border transition-colors ${
+              codeStatus === "available"
+                ? "border-emerald-300"
+                : codeStatus === "taken" || codeStatus === "invalid"
+                ? "border-red-300"
+                : "border-slate-200"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                  codeStatus === "available"
+                    ? "bg-emerald-50"
+                    : "bg-slate-50"
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-lg transition-colors ${
+                    codeStatus === "available"
+                      ? "text-emerald-600"
+                      : "text-[#0f2a5c]"
+                  }`}
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  {codeStatus === "available" ? "verified" : "qr_code_2"}
+                </span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  {t("kartotekNy.stagCode")} <span className="text-slate-300 normal-case font-semibold">({t("common.optional")})</span>
+                </p>
+                <p className="text-[11px] text-slate-400 leading-snug">{t("kartotekNy.stagCodeHint")}</p>
+              </div>
+            </div>
+            <input
+              type="text"
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              value={stagCode}
+              onChange={(e) => setStagCode(e.target.value.toUpperCase())}
+              placeholder="ST-XXXX-XXXX"
+              className={`w-full font-mono text-lg tracking-wider bg-slate-50 border rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition ${
+                codeStatus === "available"
+                  ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                  : codeStatus === "taken" || codeStatus === "invalid"
+                  ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
+                  : "border-slate-200 focus:border-[#0f2a5c] focus:ring-[#0f2a5c]/10"
+              }`}
+            />
+            <div className="text-xs h-5">
+              {codeStatus === "checking" && (
+                <span className="text-slate-400">{t("kartotekNy.checking")}</span>
+              )}
+              {codeStatus === "available" && (
+                <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">
+                    check_circle
+                  </span>
+                  {t("kartotekNy.available")}
+                </span>
+              )}
+              {codeStatus === "taken" && (
+                <span className="text-red-600 font-semibold">
+                  {t("kartotekNy.taken")}
+                </span>
+              )}
+              {codeStatus === "invalid" && (
+                <span className="text-red-600 font-semibold">
+                  {t("kartotekNy.tooShort")}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Flere detaljer */}

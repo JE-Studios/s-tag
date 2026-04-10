@@ -5,7 +5,9 @@
 
 ## Om prosjektet
 
-S-TAG er et nasjonalt register for sikring og sporing av eiendeler. Chip-basert tyveriforebygging og digitalt eierskifte. B2B2C-modell: produsenter embedder chip i produkter (jakker, sykler, ski osv.), brukere parer ikke selv — chipen er allerede koblet til produktet ved kjøp.
+S-TAG er et nasjonalt verdiregister for sikring, dokumentasjon og sporing av eiendeler. Brukere registrerer eiendeler med bilde, kvittering og detaljer — uavhengig av om gjenstanden har en S-TAG-chip. Kvitteringer og dokumentasjon lagres i registeret slik at brukeren har bevis ved f.eks. forsikringssaker (husbrann, tyveri). Bruker kan dele dokumentasjon direkte med forsikringsselskapet sitt fra appen.
+
+S-TAG-chip er en valgfri bonus: produkter med innstøpt S-TAG-chip (B2B2C-modell — produsenter embedder chip i jakker, sykler, ski osv.) får i tillegg live-sporing, geofence-varsling og tyveriforebygging. Chipen er allerede koblet til produktet ved kjøp.
 
 ## Teknisk stack
 
@@ -172,7 +174,9 @@ Oppdater denne seksjonen når du fullfører arbeid eller oppdager nye problemer.
 ### Fungerer
 - Registrering og innlogging (e-post + passord + Google OAuth)
 - Glemt passord / tilbakestill passord (e-post sendes kun til kontoeier, se begrensninger)
-- Gjenstands-CRUD (opprett, rediger, slett)
+- Gjenstands-CRUD (opprett, rediger, slett) — chip er valgfri, gjenstander kan registreres som ren verdidokumentasjon
+- Kvittering/dokumentasjon per gjenstand (bilde av kvittering lagres i registeret)
+- Forsikringsinfo i innstillinger (selskap + polisenummer) + "Del med forsikring"-knapp på gjenstandsdetalj
 - Chip-paring og -unparing
 - Eierskifte med salgskontrakt og BankID-signering (Criipto)
 - Kart med live-sporing og geofence

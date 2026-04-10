@@ -59,6 +59,7 @@ ALTER TABLE items ADD COLUMN IF NOT EXISTS purchased_at   DATE;
 ALTER TABLE items ADD COLUMN IF NOT EXISTS photo_url      TEXT;
 ALTER TABLE items ADD COLUMN IF NOT EXISTS public_code    TEXT UNIQUE;
 ALTER TABLE items ADD COLUMN IF NOT EXISTS lost_message   TEXT;
+ALTER TABLE items ADD COLUMN IF NOT EXISTS receipt_url    TEXT;
 
 -- Geofence / "hjemme-sone". Hvis chipen pingen fra mer enn geofence_radius_m
 -- unna (home_lat, home_lng) genereres et varsel til eier automatisk.
