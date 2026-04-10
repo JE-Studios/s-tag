@@ -59,7 +59,7 @@ export default function LandingPage() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-white text-[#0f2a5c]">
       {/* Navigation */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -67,10 +67,10 @@ export default function LandingPage() {
             <Image src="/logo.png" alt="S-TAG" width={40} height={28} className="object-contain" />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <a href="#funksjoner" className="hover:text-slate-900 transition">Funksjoner</a>
-            <a href="#slik-fungerer-det" className="hover:text-slate-900 transition">Slik fungerer det</a>
-            <a href="#faq" className="hover:text-slate-900 transition">FAQ</a>
-            <a href="#kontakt" className="hover:text-slate-900 transition">Kontakt</a>
+            <a href="#funksjoner" className="hover:text-[#0f2a5c] transition">Funksjoner</a>
+            <a href="#slik-fungerer-det" className="hover:text-[#0f2a5c] transition">Slik fungerer det</a>
+            <a href="#faq" className="hover:text-[#0f2a5c] transition">FAQ</a>
+            <a href="#kontakt" className="hover:text-[#0f2a5c] transition">Kontakt</a>
           </nav>
           <div className="flex items-center gap-3">
             {user ? (
@@ -82,7 +82,7 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <Link href="/logg-inn" className="text-sm font-semibold text-slate-700 hover:text-slate-900">
+                <Link href="/logg-inn" className="text-sm font-semibold text-[#0f2a5c] hover:text-[#1a3d7c]">
                   Logg inn
                 </Link>
                 <Link
@@ -120,15 +120,10 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold tracking-widest uppercase mb-6">
-              ● Gratis for sluttbrukere
-            </span>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[0.95] mb-6">
               Innebygd i produktet.
               <br />
-              <span className="bg-gradient-to-r from-[#0f2a5c] to-[#2563eb] bg-clip-text text-transparent">
-                Sikret for livet.
-              </span>
+              Sikret for livet.
             </h1>
             <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
               S-TAG-chipen støpes inn i sykler, ski, elsparkesykler, verktøy og elektronikk
@@ -144,7 +139,7 @@ export default function LandingPage() {
               </Link>
               <a
                 href="#slik-fungerer-det"
-                className="w-full sm:w-auto px-8 py-4 rounded-full border-2 border-slate-200 text-slate-700 text-base font-bold hover:bg-slate-50 transition"
+                className="w-full sm:w-auto px-8 py-4 rounded-full border-2 border-slate-200 text-[#0f2a5c] text-base font-bold hover:bg-slate-50 transition"
               >
                 Se hvordan det fungerer
               </a>
@@ -318,7 +313,7 @@ export default function LandingPage() {
             </a>
             <Link
               href="/kontakt"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-slate-200 text-slate-700 font-bold hover:bg-white transition"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-slate-200 text-[#0f2a5c] font-bold hover:bg-white transition"
             >
               Åpne kontaktskjema
             </Link>
@@ -337,10 +332,10 @@ export default function LandingPage() {
             <span className="text-sm text-slate-500">© 2026 S-TAG. Alle rettigheter reservert.</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-slate-500">
-            <Link href="/personvern" className="hover:text-slate-900">Personvern</Link>
-            <Link href="/vilkar" className="hover:text-slate-900">Vilkår</Link>
-            <Link href="/kontakt" className="hover:text-slate-900">Kontakt</Link>
-            <a href="mailto:marianne@s-tag.no" className="hover:text-slate-900">
+            <Link href="/personvern" className="hover:text-[#0f2a5c]">Personvern</Link>
+            <Link href="/vilkar" className="hover:text-[#0f2a5c]">Vilkår</Link>
+            <Link href="/kontakt" className="hover:text-[#0f2a5c]">Kontakt</Link>
+            <a href="mailto:marianne@s-tag.no" className="hover:text-[#0f2a5c]">
               marianne@s-tag.no
             </a>
           </div>
