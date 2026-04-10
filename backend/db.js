@@ -96,6 +96,7 @@ function mapItem(row) {
     photoUrl: row.photo_url ?? null,
     publicCode: row.public_code ?? null,
     lostMessage: row.lost_message ?? null,
+    receiptUrl: row.receipt_url ?? null,
     homeLat: row.home_lat ?? null,
     homeLng: row.home_lng ?? null,
     geofenceRadiusM: row.geofence_radius_m ?? null,
@@ -272,9 +273,9 @@ async function createItem(item) {
        (id, owner_id, name, tag_id, status, category, chip_uid, chip_paired_at,
         chip_last_ping, chip_status, lat, lng, last_seen, battery,
         description, serial_number, brand, model, color, value_nok, purchased_at,
-        photo_url, public_code)
+        photo_url, public_code, receipt_url)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
-               $15,$16,$17,$18,$19,$20,$21,$22,$23)
+               $15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
        RETURNING *`,
       [
         item.id, item.ownerId, item.name, item.tagId, item.status || "secured",
@@ -286,6 +287,7 @@ async function createItem(item) {
         item.brand ?? null, item.model ?? null, item.color ?? null,
         item.valueNok ?? null, item.purchasedAt ?? null,
         item.photoUrl ?? null, item.publicCode ?? null,
+        item.receiptUrl ?? null,
       ]
     );
     return mapItem(r.rows[0]);
@@ -308,6 +310,7 @@ async function updateItem(id, ownerId, patch) {
       brand: "brand", model: "model", color: "color",
       value_nok: "valueNok", purchased_at: "purchasedAt",
       photo_url: "photoUrl", public_code: "publicCode", lost_message: "lostMessage",
+      receipt_url: "receiptUrl",
       home_lat: "homeLat", home_lng: "homeLng",
       geofence_radius_m: "geofenceRadiusM", geofence_alerted: "geofenceAlerted",
       accuracy_m: "accuracyM", speed_mps: "speedMps", temperature_c: "temperatureC",
@@ -335,7 +338,7 @@ async function updateItem(id, ownerId, patch) {
     "chipUid", "chipPairedAt", "chipLastPing", "chipStatus",
     "lat", "lng", "lastSeen", "battery",
     "description", "serialNumber", "brand", "model", "color",
-    "valueNok", "purchasedAt", "photoUrl", "publicCode", "lostMessage",
+    "valueNok", "purchasedAt", "photoUrl", "publicCode", "lostMessage", "receiptUrl",
     "homeLat", "homeLng", "geofenceRadiusM", "geofenceAlerted",
     "accuracyM", "speedMps", "temperatureC",
   ];

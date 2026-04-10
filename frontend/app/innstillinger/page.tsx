@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, FormEvent, ReactNode } from "react";
+import { useState, useEffect, FormEvent, ReactNode, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import TopBar from "../components/TopBar";
@@ -18,7 +18,7 @@ const SOFT_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 export default function InnstillingerPage() {
   const { user, setUser, logout, refreshUser } = useAuth();
   const toast = useToast();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const geo = useGeolocation(false);
 
   // Profil
@@ -32,6 +32,11 @@ export default function InnstillingerPage() {
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
   const [notifyMarketing, setNotifyMarketing] = useState(false);
+
+  // Forsikring
+  const [insuranceCompany, setInsuranceCompany] = useState("");
+  const [insurancePolicy, setInsurancePolicy] = useState("");
+  const [savingInsurance, setSavingInsurance] = useState(false);
 
   // Passord
   const [oldPassword, setOldPassword] = useState("");
@@ -47,6 +52,8 @@ export default function InnstillingerPage() {
     setName(user.name || "");
     setEmail(user.email || "");
     setPhone(user.phone || "");
+    setInsuranceCompany(user.insuranceCompany || "");
+    setInsurancePolicy(user.insurancePolicy || "");
     setLocationConsent(!!user.consentLocation);
     setNotifyEmail(user.notifyEmail !== false);
     setNotifyPush(user.notifyPush !== false);
@@ -68,6 +75,23 @@ export default function InnstillingerPage() {
       toast.error(err.message || t("common.error"));
     } finally {
       setSavingProfile(false);
+    }
+  }
+
+  async function saveInsurance(e: FormEvent) {
+    e.preventDefault();
+    setSavingInsurance(true);
+    try {
+      const { user: updated } = await authApi.updateProfile({
+        insuranceCompany: insuranceCompany.trim() || null,
+        insurancePolicy: insurancePolicy.trim() || null,
+      });
+      setUser(updated);
+      toast.success(t("settings.insuranceUpdated"));
+    } catch (err: any) {
+      toast.error(err.message || t("common.error"));
+    } finally {
+      setSavingInsurance(false);
     }
   }
 
@@ -206,6 +230,18 @@ export default function InnstillingerPage() {
               </button>
             </form>
           </SettingsCard>
+
+          {/* Forsikring */}
+          <InsuranceCard
+            t={t}
+            locale={locale}
+            insuranceCompany={insuranceCompany}
+            setInsuranceCompany={setInsuranceCompany}
+            insurancePolicy={insurancePolicy}
+            setInsurancePolicy={setInsurancePolicy}
+            savingInsurance={savingInsurance}
+            onSubmit={saveInsurance}
+          />
 
           {/* Personvern og samtykker */}
           <SettingsCard
@@ -502,5 +538,237 @@ function ToggleRow({
         />
       </div>
     </button>
+  );
+}
+
+type Insurer = { name: string; url: string };
+
+const INSURERS_BY_LOCALE: Record<string, Insurer[]> = {
+  nb: [
+    { name: "If", url: "https://www.if.no" },
+    { name: "Gjensidige", url: "https://www.gjensidige.no" },
+    { name: "Tryg", url: "https://www.tryg.no" },
+    { name: "Fremtind", url: "https://www.fremtind.no" },
+    { name: "Storebrand", url: "https://www.storebrand.no" },
+    { name: "SpareBank 1", url: "https://www.sparebank1.no/forsikring" },
+    { name: "Eika Forsikring", url: "https://www.eika.no/forsikring" },
+    { name: "KLP", url: "https://www.klp.no" },
+    { name: "DNB Forsikring", url: "https://www.dnb.no/forsikring" },
+    { name: "Frende", url: "https://www.frende.no" },
+    { name: "Codan", url: "https://www.codan.no" },
+    { name: "Protector", url: "https://www.protectorforsikring.no" },
+  ],
+  sv: [
+    { name: "Länsförsäkringar", url: "https://www.lansforsakringar.se" },
+    { name: "If", url: "https://www.if.se" },
+    { name: "Trygg-Hansa", url: "https://www.trygghansa.se" },
+    { name: "Folksam", url: "https://www.folksam.se" },
+    { name: "Moderna Försäkringar", url: "https://www.modernaforsakringar.se" },
+    { name: "Dina Försäkringar", url: "https://www.dina.se" },
+    { name: "ICA Försäkring", url: "https://www.icaforsakring.se" },
+    { name: "Gjensidige", url: "https://www.gjensidige.se" },
+    { name: "Zurich", url: "https://www.zurich.se" },
+  ],
+  da: [
+    { name: "Tryg", url: "https://www.tryg.dk" },
+    { name: "Topdanmark", url: "https://www.topdanmark.dk" },
+    { name: "Alm. Brand", url: "https://www.almbrand.dk" },
+    { name: "Codan", url: "https://www.codan.dk" },
+    { name: "GF Forsikring", url: "https://www.gf-forsikring.dk" },
+    { name: "If", url: "https://www.if.dk" },
+    { name: "Gjensidige", url: "https://www.gjensidige.dk" },
+    { name: "Runa Forsikring", url: "https://www.runaforsikring.dk" },
+    { name: "Privatsikring", url: "https://www.privatsikring.dk" },
+  ],
+  de: [
+    { name: "Allianz", url: "https://www.allianz.de" },
+    { name: "HUK-Coburg", url: "https://www.huk.de" },
+    { name: "DEVK", url: "https://www.devk.de" },
+    { name: "Ergo", url: "https://www.ergo.de" },
+    { name: "AXA", url: "https://www.axa.de" },
+    { name: "Zurich", url: "https://www.zurich.de" },
+    { name: "Generali", url: "https://www.generali.de" },
+    { name: "R+V Versicherung", url: "https://www.ruv.de" },
+    { name: "Württembergische", url: "https://www.wuerttembergische.de" },
+  ],
+  fr: [
+    { name: "AXA", url: "https://www.axa.fr" },
+    { name: "MAIF", url: "https://www.maif.fr" },
+    { name: "Macif", url: "https://www.macif.fr" },
+    { name: "Groupama", url: "https://www.groupama.fr" },
+    { name: "Allianz", url: "https://www.allianz.fr" },
+    { name: "MMA", url: "https://www.mma.fr" },
+    { name: "GMF", url: "https://www.gmf.fr" },
+    { name: "MATMUT", url: "https://www.matmut.fr" },
+    { name: "Generali", url: "https://www.generali.fr" },
+  ],
+  es: [
+    { name: "Mapfre", url: "https://www.mapfre.es" },
+    { name: "Allianz", url: "https://www.allianz.es" },
+    { name: "AXA", url: "https://www.axa.es" },
+    { name: "Zurich", url: "https://www.zurich.es" },
+    { name: "Generali", url: "https://www.generali.es" },
+    { name: "Línea Directa", url: "https://www.lineadirecta.com" },
+    { name: "Mutua Madrileña", url: "https://www.mutua.es" },
+    { name: "Santalucía", url: "https://www.santalucia.es" },
+    { name: "Pelayo", url: "https://www.pelayo.com" },
+  ],
+  en: [
+    { name: "Allianz", url: "https://www.allianz.com" },
+    { name: "AXA", url: "https://www.axa.com" },
+    { name: "Zurich", url: "https://www.zurich.com" },
+    { name: "Generali", url: "https://www.generali.com" },
+    { name: "AIG", url: "https://www.aig.com" },
+    { name: "Aviva", url: "https://www.aviva.com" },
+    { name: "Liberty Mutual", url: "https://www.libertymutual.com" },
+    { name: "State Farm", url: "https://www.statefarm.com" },
+    { name: "Chubb", url: "https://www.chubb.com" },
+  ],
+};
+
+function InsuranceCard({
+  t,
+  locale,
+  insuranceCompany,
+  setInsuranceCompany,
+  insurancePolicy,
+  setInsurancePolicy,
+  savingInsurance,
+  onSubmit,
+}: {
+  t: (key: string, ...args: (string | number)[]) => string;
+  locale: string;
+  insuranceCompany: string;
+  setInsuranceCompany: (v: string) => void;
+  insurancePolicy: string;
+  setInsurancePolicy: (v: string) => void;
+  savingInsurance: boolean;
+  onSubmit: (e: FormEvent) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const insurers = INSURERS_BY_LOCALE[locale] || INSURERS_BY_LOCALE.en;
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return insurers;
+    return insurers.filter((i) => i.name.toLowerCase().includes(q));
+  }, [search, insurers]);
+
+  const selectedInsurer = insurers.find(
+    (i) => i.name.toLowerCase() === insuranceCompany.trim().toLowerCase()
+  );
+
+  return (
+    <SettingsCard title={t("settings.insurance")} subtitle={t("settings.insuranceSub")}>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <Field label={t("settings.insuranceCompany")}>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={insuranceCompany}
+              onChange={(e) => setInsuranceCompany(e.target.value)}
+              placeholder={t("settings.insuranceCompanyPlaceholder")}
+              className="flex-1 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPicker(!showPicker)}
+              className="px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-center"
+              title={t("settings.findInsurer")}
+            >
+              <span className="material-symbols-outlined text-[#0f2a5c] text-xl">search</span>
+            </button>
+          </div>
+        </Field>
+
+        <AnimatePresence>
+          {showPicker && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1, transition: { height: { duration: 0.3 }, opacity: { duration: 0.2, delay: 0.05 } } }}
+              exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.2 }, opacity: { duration: 0.1 } } }}
+              style={{ overflow: "hidden" }}
+            >
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t("settings.searchInsurer")}
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
+                  />
+                </div>
+                <div className="max-h-64 overflow-y-auto space-y-1">
+                  {filtered.map((ins) => {
+                    const selected = insuranceCompany.trim().toLowerCase() === ins.name.toLowerCase();
+                    return (
+                      <button
+                        key={ins.name}
+                        type="button"
+                        onClick={() => {
+                          setInsuranceCompany(ins.name);
+                          setShowPicker(false);
+                          setSearch("");
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition ${
+                          selected
+                            ? "bg-[#0f2a5c] text-white"
+                            : "bg-white border border-slate-100 hover:bg-slate-100 text-slate-900"
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${selected ? "bg-white/20" : "bg-slate-100"}`}>
+                          <span className={`material-symbols-outlined text-base ${selected ? "text-white" : "text-[#0f2a5c]"}`}>shield</span>
+                        </div>
+                        <span className="text-sm font-semibold flex-1">{ins.name}</span>
+                        {selected && <span className="material-symbols-outlined text-base">check</span>}
+                      </button>
+                    );
+                  })}
+                  {filtered.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-3">{t("settings.noInsurerMatch")}</p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {selectedInsurer && (
+          <a
+            href={selectedInsurer.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-100 transition"
+          >
+            <span className="material-symbols-outlined text-blue-700 text-xl">open_in_new</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-blue-900">{t("settings.visitInsurer", selectedInsurer.name)}</p>
+              <p className="text-[11px] text-blue-600 truncate">{selectedInsurer.url}</p>
+            </div>
+          </a>
+        )}
+
+        <Field label={t("settings.insurancePolicy")}>
+          <input
+            type="text"
+            value={insurancePolicy}
+            onChange={(e) => setInsurancePolicy(e.target.value)}
+            placeholder={t("settings.insurancePolicyPlaceholder")}
+            className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
+          />
+        </Field>
+        <button
+          type="submit"
+          disabled={savingInsurance}
+          className="w-full py-4 rounded-2xl bg-[#0f2a5c] text-white font-bold text-lg hover:bg-[#1a3d7c] transition disabled:opacity-50 shadow-lg shadow-[#0f2a5c]/20"
+        >
+          {savingInsurance ? t("common.saving") : t("common.save")}
+        </button>
+      </form>
+    </SettingsCard>
   );
 }

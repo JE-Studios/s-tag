@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import TopBar from "../../components/TopBar";
 import PhotoPicker from "../../components/PhotoPicker";
 import { items as itemsApi, ItemEvent, Item, API_BASE } from "../../lib/api";
+import { useAuth } from "../../lib/auth-context";
 import { useToast } from "../../components/Toast";
 import { useTranslation } from "../../lib/i18n";
 
@@ -34,6 +35,7 @@ function ItemDetailPage() {
   const router = useRouter();
   const toast = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const id = searchParams.get("id") || "";
   const [item, setItem] = useState<Item | null>(null);
   const [events, setEvents] = useState<ItemEvent[]>([]);
@@ -284,6 +286,77 @@ function ItemDetailPage() {
                 {t("detalj.publicCodeHint", item.publicCode)}
               </p>
             </div>
+          )}
+        </div>
+
+        {/* Kvittering / dokumentasjon */}
+        {item.receiptUrl && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                <span className="material-symbols-outlined text-amber-700 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t("detalj.receipt")}</p>
+                <p className="text-slate-700 font-bold text-sm">{t("detalj.receiptSaved")}</p>
+              </div>
+            </div>
+            <div className="rounded-xl overflow-hidden border border-slate-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.receiptUrl} alt={t("detalj.receipt")} className="w-full object-contain max-h-64" />
+            </div>
+          </div>
+        )}
+
+        {/* Del med forsikring */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <span className="material-symbols-outlined text-blue-700 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t("detalj.insurance")}</p>
+              <p className="text-slate-700 font-bold text-sm">{t("detalj.insuranceDesc")}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const lines = [
+                t("detalj.insuranceReport"),
+                "",
+                `${t("common.name")}: ${item.name}`,
+                item.brand ? `${t("detalj.brand")}: ${item.brand}` : null,
+                item.model ? `${t("detalj.model")}: ${item.model}` : null,
+                item.color ? `${t("detalj.color")}: ${item.color}` : null,
+                item.serialNumber ? `${t("detalj.serial")}: ${item.serialNumber}` : null,
+                item.valueNok ? `${t("detalj.value")}: ${new Intl.NumberFormat("nb-NO").format(item.valueNok)} kr` : null,
+                item.purchasedAt ? `${t("detalj.purchased")}: ${new Date(item.purchasedAt).toLocaleDateString("nb-NO")}` : null,
+                item.category ? `${t("kartotekNy.category")}: ${item.category}` : null,
+                `${t("detalj.tagId")}: ${item.tagId}`,
+                "",
+                user?.insuranceCompany ? `${t("settings.insuranceCompany")}: ${user.insuranceCompany}` : null,
+                user?.insurancePolicy ? `${t("settings.insurancePolicy")}: ${user.insurancePolicy}` : null,
+                "",
+                `${t("detalj.insuranceGenerated")} ${new Date().toLocaleDateString("nb-NO")}`,
+              ].filter(Boolean).join("\n");
+
+              if (navigator.share) {
+                navigator.share({ title: `S-TAG — ${item.name}`, text: lines }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(lines);
+                toast.success(t("detalj.insuranceCopied"));
+              }
+            }}
+            className="w-full py-3.5 rounded-2xl border border-blue-200 text-blue-700 font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">share</span>
+            {t("detalj.shareInsurance")}
+          </button>
+          {!user?.insuranceCompany && (
+            <p className="text-[11px] text-slate-400 mt-2 text-center">
+              {t("detalj.insuranceTip")}
+            </p>
           )}
         </div>
 
