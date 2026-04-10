@@ -6,29 +6,29 @@ import { useAuth } from "./lib/auth-context";
 
 const features = [
   {
-    icon: "memory",
-    title: "Innebygd fra fabrikken",
-    desc: "Produsenter av sykler, ski, elsparkesykler, verktøy og elektronikk støper S-TAG-chipen inn i produktet under produksjon. Du kan verken miste, bytte eller fjerne den.",
+    icon: "folder_open",
+    title: "Verdiregister",
+    desc: "Registrer eiendelene dine med bilde, kvittering og detaljer. Bunaden, sykkelen, elektronikken — alt ligger trygt dokumentert uansett hva som skjer.",
   },
   {
-    icon: "qr_code_scanner",
-    title: "Registrering på sekunder",
-    desc: "Når du kjøper produktet får du en unik S-TAG-kode. Skann den eller skriv den inn i appen, så er eierskapet ditt – digitalt og juridisk.",
+    icon: "shield",
+    title: "Del med forsikring",
+    desc: "Husbrann? Tyveri? Del dokumentasjon direkte med forsikringsselskapet ditt fra appen — med kvittering, verdianslag og polisenummer inkludert.",
+  },
+  {
+    icon: "memory",
+    title: "S-TAG-chip i produktet",
+    desc: "Produkter med innebygd S-TAG-chip gir live sporing, geofence-varsler og tyveriforebygging. Chipen støpes inn av produsenten — du trenger bare registrere koden.",
   },
   {
     icon: "location_on",
     title: "Live sporing",
-    desc: "Hvis sykkelen eller skiene blir borte ser du siste posisjon i sanntid på kartet. Chipen rapporterer så lenge den har signal mot et S-TAG- eller mobil-gateway.",
+    desc: "Produkter med S-TAG-chip viser siste posisjon i sanntid på kartet. Chipen rapporterer så lenge den har signal.",
   },
   {
     icon: "swap_horiz",
     title: "Eierskifte i appen",
     desc: "Selger du brukt? Overfør eierskapet digitalt på sekunder. Kjøper får verifisert at produktet ikke er meldt stjålet før han betaler.",
-  },
-  {
-    icon: "verified_user",
-    title: "Nasjonalt register",
-    desc: "Alle S-TAG-merkede gjenstander er søkbare. Finner du en etterlatt sykkel med S-TAG? Skann den og varsle eier anonymt via offentlig kode.",
   },
   {
     icon: "handshake",
@@ -40,18 +40,18 @@ const features = [
 const steps = [
   {
     n: "01",
-    title: "Kjøp et S-TAG-merket produkt",
-    desc: "Utvalgte sykler, ski, elsparkesykler, verktøy og elektronikk leveres med en innstøpt S-TAG-chip fra produsenten.",
+    title: "Registrer eiendelen din",
+    desc: "Ta bilde, legg ved kvittering og fyll inn detaljer. Alt lagres trygt i ditt personlige verdiregister — klart for forsikring eller salg.",
   },
   {
     n: "02",
-    title: "Registrer S-TAG-koden i appen",
-    desc: "På kvitteringen, emballasjen eller produktet finner du en unik S-TAG-kode. Legg den inn i appen – du er nå registrert eier.",
+    title: "Har produktet S-TAG-chip? Legg inn koden",
+    desc: "Produkter med innebygd S-TAG-chip får du live sporing og varsler i tillegg. Koden finner du på kvitteringen eller emballasjen.",
   },
   {
     n: "03",
-    title: "Spor, rapporter og overfør",
-    desc: "Se posisjon, marker som mistet hvis noe forsvinner, eller overfør eierskapet til en kjøper når du selger brukt.",
+    title: "Del, spor og overfør",
+    desc: "Del dokumentasjon med forsikringsselskapet, spor chip-produkter på kartet, eller overfør eierskapet når du selger.",
   },
 ];
 
@@ -121,14 +121,14 @@ export default function LandingPage() {
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[0.95] mb-6">
-              Innebygd i produktet.
+              Dokumentert. Sporet.
               <br />
-              Sikret for livet.
+              Sikret.
             </h1>
             <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-              S-TAG-chipen støpes inn i sykler, ski, elsparkesykler, verktøy og elektronikk
-              av produsenten. Du registrerer den unike koden i appen – og gjenstanden er
-              dokumentert, sporbar og gjenkjennbar for alltid.
+              Registrer eiendelene dine med bilde, kvittering og detaljer — og ha dokumentasjonen
+              klar for forsikring, politi eller salg. Produkter med innebygd S-TAG-chip gir deg
+              i tillegg live sporing og tyveriforebygging.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
@@ -192,8 +192,8 @@ export default function LandingPage() {
               Fra kassen til beskyttet på under ett minutt
             </h2>
             <p className="mt-4 text-slate-600 max-w-xl mx-auto">
-              Chipen er allerede i produktet når du kjøper det. Du trenger ingen skruing,
-              pairing eller hardware – bare S-TAG-koden som følger med.
+              Du kan registrere hva som helst — med eller uten S-TAG-chip.
+              Chipen er en bonus som gir sporing, men verdiregisteret fungerer for alle eiendeler.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -225,16 +225,16 @@ export default function LandingPage() {
           <div className="space-y-4">
             {[
               {
+                q: "Hva er S-TAG?",
+                a: "S-TAG er et verdiregister der du dokumenterer eiendelene dine med bilde, kvittering og detaljer. Alt ligger trygt lagret — klar for forsikringsbevis, salg eller politianmeldelse. Produkter med innebygd S-TAG-chip får i tillegg live sporing og varsler.",
+              },
+              {
+                q: "Trenger jeg en S-TAG-chip for å bruke appen?",
+                a: "Nei. Du kan registrere hvilken som helst eiendel — bunad, elektronikk, smykker, verktøy — helt uten chip. Chipen er en ekstra funksjon for produkter som har den innebygd fra produsenten.",
+              },
+              {
                 q: "Hva er en S-TAG-chip?",
-                a: "En liten NFC/BLE-chip som støpes eller integreres inn i produktet under produksjon. Den er usynlig fra utsiden, kan ikke fjernes og lever hele produktets levetid.",
-              },
-              {
-                q: "Hvilke produkter har S-TAG innebygd?",
-                a: "Sykler, elsparkesykler, ski, verktøy, elektronikk og andre verdifulle produkter fra produsenter som samarbeider med S-TAG. Se etter S-TAG-merket på emballasjen når du kjøper.",
-              },
-              {
-                q: "Må jeg pare chipen selv?",
-                a: "Nei. Du trenger bare den unike S-TAG-koden som fulgte med produktet. Du skriver inn koden i appen, så er du registrert eier – ingen Bluetooth-pairing eller hardware-oppsett.",
+                a: "En liten chip som støpes inn i produktet under produksjon. Den gir live sporing, geofence-varsler og tyveriforebygging. Du trenger bare registrere koden som følger med — ingen pairing eller oppsett.",
               },
               {
                 q: "Hva skjer hvis jeg selger produktet?",
@@ -276,7 +276,7 @@ export default function LandingPage() {
             Klar til å sikre det du eier?
           </h2>
           <p className="text-xl text-white/80 mb-10">
-            Opprett en konto på under ett minutt og registrer ditt første S-TAG-merkede produkt.
+            Opprett en konto på under ett minutt og registrer din første eiendel — med eller uten S-TAG-chip.
           </p>
           <Link
             href="/registrer"
