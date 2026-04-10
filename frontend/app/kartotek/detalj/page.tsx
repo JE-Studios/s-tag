@@ -365,7 +365,8 @@ function ItemDetailPage() {
           )}
         </div>
 
-        {/* S-TAG chip (innstøpt av produsent) */}
+        {/* S-TAG chip (innstøpt av produsent) — kun synlig når chip finnes */}
+        {item.chipStatus !== "unpaired" && (
         <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -385,7 +386,6 @@ function ItemDetailPage() {
                   {item.chipStatus === "active" && t("detalj.chip.active")}
                   {item.chipStatus === "paired" && t("detalj.chip.paired")}
                   {item.chipStatus === "lost" && t("detalj.chip.lost")}
-                  {item.chipStatus === "unpaired" && t("detalj.chip.unpaired")}
                 </p>
               </div>
             </div>
@@ -411,6 +411,7 @@ function ItemDetailPage() {
             {t("detalj.chip.info")}
           </p>
         </div>
+        )}
 
         {/* Aktivitetslogg */}
         {events.length > 0 && (
