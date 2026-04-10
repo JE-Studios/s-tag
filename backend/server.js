@@ -194,7 +194,7 @@ app.get("/api/health", h(async (_req, res) => {
   res.status(dbHealth.ok ? 200 : 503).json({
     status,
     service: "S-TAG backend",
-    build: "2026-04-09a",
+    build: "2026-04-10a",
     store: dbHealth.store,
     db: dbHealth.ok ? "up" : "down",
     time: new Date().toISOString(),
