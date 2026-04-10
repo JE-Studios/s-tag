@@ -73,10 +73,12 @@ function ItemDetailPage() {
       .then((data) => {
         setItem(data);
         setLoading(false);
-        fetch(`${API_BASE}/api/geocode?lat=${data.lat}&lng=${data.lng}`)
-          .then((r) => r.json())
-          .then((g) => g && setAddress(g.display || ""))
-          .catch(() => {});
+        if (data.chipStatus !== "unpaired") {
+          fetch(`${API_BASE}/api/geocode?lat=${data.lat}&lng=${data.lng}`)
+            .then((r) => r.json())
+            .then((g) => g && setAddress(g.display || ""))
+            .catch(() => {});
+        }
         itemsApi.events(id).then(setEvents).catch(() => setEvents([]));
       })
       .catch(() => setLoading(false));
@@ -205,45 +207,48 @@ function ItemDetailPage() {
           />
         </div>
 
-        {/* Kart */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-56"
-        >
-          <MapView items={[item]} selectedId={item.id} />
-        </motion.div>
+        {/* Kart + adresse — kun for gjenstander med chip */}
+        {item.chipStatus !== "unpaired" && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-6 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-56"
+            >
+              <MapView items={[item]} selectedId={item.id} />
+            </motion.div>
 
-        {/* Adresse-kort */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-              <span
-                className="material-symbols-outlined text-[#0f2a5c] text-xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                location_on
-              </span>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <span
+                    className="material-symbols-outlined text-[#0f2a5c] text-xl"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    location_on
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    {t("detalj.lastSeen")}
+                  </p>
+                  <p className="text-slate-900 font-bold text-base">{address || item.lastSeen}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs text-slate-500 pt-3 border-t border-slate-100">
+                <div>
+                  <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t("detalj.latitude")}</span>
+                  <span className="text-slate-700 font-mono">{item.lat.toFixed(5)}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t("detalj.longitude")}</span>
+                  <span className="text-slate-700 font-mono">{item.lng.toFixed(5)}</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                {t("detalj.lastSeen")}
-              </p>
-              <p className="text-slate-900 font-bold text-base">{address || item.lastSeen}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-xs text-slate-500 pt-3 border-t border-slate-100">
-            <div>
-              <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t("detalj.latitude")}</span>
-              <span className="text-slate-700 font-mono">{item.lat.toFixed(5)}</span>
-            </div>
-            <div>
-              <span className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t("detalj.longitude")}</span>
-              <span className="text-slate-700 font-mono">{item.lng.toFixed(5)}</span>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Info */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4 shadow-sm space-y-4">
