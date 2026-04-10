@@ -308,8 +308,9 @@ const nb: Record<string, string> = {
   "settings.insuranceUpdated": "Forsikringsinfo oppdatert",
   "settings.findInsurer": "Finn forsikringsselskap",
   "settings.searchInsurer": "Søk blant forsikringsselskaper …",
-  "settings.noInsurerMatch": "Ingen treff — skriv inn manuelt over",
+  "settings.noInsurerMatch": "Finner du ikke ditt? Skriv inn manuelt over",
   "settings.visitInsurer": "Gå til {0}",
+  "settings.policyHelp": "Polisenummeret lagres i profilen din og inkluderes når du deler dokumentasjon med forsikringsselskapet — slik at de kan koble eiendelene dine til riktig avtale. Det opprettes ingen automatisk kobling.",
   "settings.language": "Språk",
   "settings.languageSub": "Velg visningsspråk for appen",
 

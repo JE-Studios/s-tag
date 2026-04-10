@@ -308,8 +308,9 @@ const fr: Record<string, string> = {
   "settings.insuranceUpdated": "Informations d\u2019assurance mises \u00e0 jour",
   "settings.findInsurer": "Trouver un assureur",
   "settings.searchInsurer": "Rechercher parmi les assureurs \u2026",
-  "settings.noInsurerMatch": "Aucun r\u00e9sultat \u2014 saisissez manuellement ci-dessus",
+  "settings.noInsurerMatch": "Pas dans la liste ? Saisissez manuellement ci-dessus",
   "settings.visitInsurer": "Aller sur {0}",
+  "settings.policyHelp": "Votre num\u00e9ro de police est enregistr\u00e9 dans votre profil et inclus lorsque vous partagez la documentation avec votre assureur \u2014 pour qu\u2019il puisse relier vos biens \u00e0 la bonne police. Aucune liaison automatique n\u2019est cr\u00e9\u00e9e.",
   "settings.language": "Langue",
   "settings.languageSub": "Choisissez la langue d\u2019affichage de l\u2019application",
 

@@ -308,8 +308,9 @@ const de: Record<string, string> = {
   "settings.insuranceUpdated": "Versicherungsinformationen aktualisiert",
   "settings.findInsurer": "Versicherung finden",
   "settings.searchInsurer": "Versicherungen durchsuchen \u2026",
-  "settings.noInsurerMatch": "Kein Treffer \u2014 oben manuell eingeben",
+  "settings.noInsurerMatch": "Nicht gefunden? Oben manuell eingeben",
   "settings.visitInsurer": "Zu {0}",
+  "settings.policyHelp": "Deine Policennummer wird in deinem Profil gespeichert und beim Teilen von Dokumenten mit deiner Versicherung mitgesendet — damit sie deine Gegenstände der richtigen Police zuordnen können. Es wird keine automatische Verbindung hergestellt.",
   "settings.language": "Sprache",
   "settings.languageSub": "Anzeigesprache der App w\u00e4hlen",
 

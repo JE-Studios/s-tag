@@ -308,8 +308,9 @@ const es: Record<string, string> = {
   "settings.insuranceUpdated": "Informacion del seguro actualizada",
   "settings.findInsurer": "Buscar aseguradora",
   "settings.searchInsurer": "Buscar entre aseguradoras \u2026",
-  "settings.noInsurerMatch": "Sin resultados \u2014 ingresa manualmente arriba",
+  "settings.noInsurerMatch": "¿No aparece? Ingrésalo manualmente arriba",
   "settings.visitInsurer": "Ir a {0}",
+  "settings.policyHelp": "Tu número de póliza se guarda en tu perfil y se incluye al compartir documentación con tu aseguradora — para que puedan vincular tus bienes a la póliza correcta. No se crea ninguna conexión automática.",
   "settings.language": "Idioma",
   "settings.languageSub": "Elige el idioma de la aplicacion",
 

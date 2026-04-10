@@ -308,8 +308,9 @@ const sv: Record<string, string> = {
   "settings.insuranceUpdated": "F\u00f6rs\u00e4kringsinformation uppdaterad",
   "settings.findInsurer": "Hitta f\u00f6rs\u00e4kringsbolag",
   "settings.searchInsurer": "S\u00f6k bland f\u00f6rs\u00e4kringsbolag \u2026",
-  "settings.noInsurerMatch": "Inga tr\u00e4ffar \u2014 skriv in manuellt ovan",
+  "settings.noInsurerMatch": "Hittar du inte ditt? Skriv in manuellt ovan",
   "settings.visitInsurer": "G\u00e5 till {0}",
+  "settings.policyHelp": "Ditt f\u00f6rs\u00e4kringsnummer sparas i din profil och inkluderas n\u00e4r du delar dokumentation med ditt f\u00f6rs\u00e4kringsbolag \u2014 s\u00e5 de kan koppla dina tillg\u00e5ngar till r\u00e4tt avtal. Ingen automatisk koppling skapas.",
   "settings.language": "Spr\u00e5k",
   "settings.languageSub": "V\u00e4lj visningsspr\u00e5k f\u00f6r appen",
 

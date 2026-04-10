@@ -626,6 +626,28 @@ const INSURERS_BY_LOCALE: Record<string, Insurer[]> = {
   ],
 };
 
+function InsurerLogo({ url, name, size = 24 }: { url: string; name: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  const domain = useMemo(() => { try { return new URL(url).hostname; } catch { return null; } }, [url]);
+  if (!domain || failed) {
+    return (
+      <div className="flex items-center justify-center rounded-lg bg-slate-100" style={{ width: size, height: size }}>
+        <span className="material-symbols-outlined text-[#0f2a5c]" style={{ fontSize: size * 0.6 }}>shield</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=${size * 2}`}
+      alt={name}
+      width={size}
+      height={size}
+      className="rounded"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function InsuranceCard({
   t,
   locale,
@@ -645,109 +667,87 @@ function InsuranceCard({
   savingInsurance: boolean;
   onSubmit: (e: FormEvent) => void;
 }) {
-  const [showPicker, setShowPicker] = useState(false);
-  const [search, setSearch] = useState("");
+  const [focused, setFocused] = useState(false);
 
   const insurers = INSURERS_BY_LOCALE[locale] || INSURERS_BY_LOCALE.en;
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return insurers;
+    const q = insuranceCompany.trim().toLowerCase();
+    if (!q) return focused ? insurers : [];
     return insurers.filter((i) => i.name.toLowerCase().includes(q));
-  }, [search, insurers]);
+  }, [insuranceCompany, insurers, focused]);
 
   const selectedInsurer = insurers.find(
     (i) => i.name.toLowerCase() === insuranceCompany.trim().toLowerCase()
   );
 
+  const showDropdown = focused && filtered.length > 0 && !selectedInsurer;
+
   return (
     <SettingsCard title={t("settings.insurance")} subtitle={t("settings.insuranceSub")}>
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label={t("settings.insuranceCompany")}>
-          <div className="flex gap-2">
+          <div className="relative">
             <input
               type="text"
               value={insuranceCompany}
               onChange={(e) => setInsuranceCompany(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setTimeout(() => setFocused(false), 200)}
               placeholder={t("settings.insuranceCompanyPlaceholder")}
-              className="flex-1 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
+              autoComplete="off"
+              className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
             />
-            <button
-              type="button"
-              onClick={() => setShowPicker(!showPicker)}
-              className="px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-center"
-              title={t("settings.findInsurer")}
-            >
-              <span className="material-symbols-outlined text-[#0f2a5c] text-xl">search</span>
-            </button>
-          </div>
-        </Field>
-
-        <AnimatePresence>
-          {showPicker && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1, transition: { height: { duration: 0.3 }, opacity: { duration: 0.2, delay: 0.05 } } }}
-              exit={{ height: 0, opacity: 0, transition: { height: { duration: 0.2 }, opacity: { duration: 0.1 } } }}
-              style={{ overflow: "hidden" }}
-            >
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder={t("settings.searchInsurer")}
-                    className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
-                  />
-                </div>
-                <div className="max-h-64 overflow-y-auto space-y-1">
-                  {filtered.map((ins) => {
-                    const selected = insuranceCompany.trim().toLowerCase() === ins.name.toLowerCase();
-                    return (
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute z-30 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden"
+                >
+                  <div className="max-h-64 overflow-y-auto py-1">
+                    {filtered.map((ins) => (
                       <button
                         key={ins.name}
                         type="button"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
                           setInsuranceCompany(ins.name);
-                          setShowPicker(false);
-                          setSearch("");
+                          setFocused(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition ${
-                          selected
-                            ? "bg-[#0f2a5c] text-white"
-                            : "bg-white border border-slate-100 hover:bg-slate-100 text-slate-900"
-                        }`}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50 transition"
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${selected ? "bg-white/20" : "bg-slate-100"}`}>
-                          <span className={`material-symbols-outlined text-base ${selected ? "text-white" : "text-[#0f2a5c]"}`}>shield</span>
-                        </div>
-                        <span className="text-sm font-semibold flex-1">{ins.name}</span>
-                        {selected && <span className="material-symbols-outlined text-base">check</span>}
+                        <InsurerLogo url={ins.url} name={ins.name} size={24} />
+                        <span className="text-sm font-semibold text-slate-900">{ins.name}</span>
                       </button>
-                    );
-                  })}
-                  {filtered.length === 0 && (
-                    <p className="text-xs text-slate-400 text-center py-3">{t("settings.noInsurerMatch")}</p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    ))}
+                  </div>
+                  <div className="px-4 py-2 border-t border-slate-100">
+                    <p className="text-[11px] text-slate-400">{t("settings.noInsurerMatch")}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </Field>
 
         {selectedInsurer && (
           <a
             href={selectedInsurer.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-100 transition"
+            className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition group"
           >
-            <span className="material-symbols-outlined text-blue-700 text-xl">open_in_new</span>
+            <InsurerLogo url={selectedInsurer.url} name={selectedInsurer.name} size={32} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-blue-900">{t("settings.visitInsurer", selectedInsurer.name)}</p>
-              <p className="text-[11px] text-blue-600 truncate">{selectedInsurer.url}</p>
+              <p className="text-sm font-bold text-slate-900">{selectedInsurer.name}</p>
+              <p className="text-[11px] text-slate-500 truncate">{selectedInsurer.url.replace(/^https?:\/\//, "")}</p>
+            </div>
+            <div className="flex items-center gap-1 text-[#0f2a5c] opacity-70 group-hover:opacity-100 transition">
+              <span className="text-xs font-bold">{t("settings.visitInsurer", "").trim()}</span>
+              <span className="material-symbols-outlined text-lg">open_in_new</span>
             </div>
           </a>
         )}
@@ -760,6 +760,9 @@ function InsuranceCard({
             placeholder={t("settings.insurancePolicyPlaceholder")}
             className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f2a5c] focus:ring-2 focus:ring-[#0f2a5c]/10 transition"
           />
+          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+            {t("settings.policyHelp")}
+          </p>
         </Field>
         <button
           type="submit"

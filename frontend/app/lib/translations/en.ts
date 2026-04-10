@@ -308,8 +308,9 @@ const en: Record<string, string> = {
   "settings.insuranceUpdated": "Insurance info updated",
   "settings.findInsurer": "Find insurance company",
   "settings.searchInsurer": "Search insurance companies \u2026",
-  "settings.noInsurerMatch": "No match \u2014 enter manually above",
+  "settings.noInsurerMatch": "Not listed? Enter manually above",
   "settings.visitInsurer": "Go to {0}",
+  "settings.policyHelp": "Your policy number is saved in your profile and included when you share documentation with your insurer — so they can link your assets to the right policy. No automatic connection is created.",
   "settings.language": "Language",
   "settings.languageSub": "Choose display language for the app",
 

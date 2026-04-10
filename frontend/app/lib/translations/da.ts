@@ -308,8 +308,9 @@ const da: Record<string, string> = {
   "settings.insuranceUpdated": "Forsikringsinfo opdateret",
   "settings.findInsurer": "Find forsikringsselskab",
   "settings.searchInsurer": "S\u00f8g blandt forsikringsselskaber \u2026",
-  "settings.noInsurerMatch": "Ingen resultater \u2014 indtast manuelt ovenfor",
+  "settings.noInsurerMatch": "Ikke p\u00e5 listen? Indtast manuelt ovenfor",
   "settings.visitInsurer": "G\u00e5 til {0}",
+  "settings.policyHelp": "Dit policenummer gemmes i din profil og inkluderes n\u00e5r du deler dokumentation med dit forsikringsselskab \u2014 s\u00e5 de kan koble dine ejendele til den rette aftale. Der oprettes ingen automatisk forbindelse.",
   "settings.language": "Sprog",
   "settings.languageSub": "V\u00e6lg visningssprog for appen",
 
