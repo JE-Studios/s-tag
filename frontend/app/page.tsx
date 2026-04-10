@@ -254,7 +254,7 @@ export default function LandingPage() {
               },
               {
                 q: "Hvordan kontakter jeg support?",
-                a: "Send oss en melding fra Kontakt-siden, eller skriv direkte til marianne@s-tag.no. Vi svarer vanligvis innen én virkedag.",
+                a: "Send oss en melding fra Kontakt-siden, eller skriv direkte til support@s-tag.no. Vi svarer vanligvis innen én virkedag.",
               },
             ].map((item, i) => (
               <details key={i} className="group bg-slate-50 rounded-2xl p-6 border border-slate-200">
@@ -328,7 +328,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="mailto:marianne@s-tag.no"
+              href="mailto:support@s-tag.no"
               className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#0f2a5c] text-white font-bold hover:bg-[#1a3d7c] transition shadow-lg shadow-[#0f2a5c]/20"
             >
               <span
@@ -337,7 +337,7 @@ export default function LandingPage() {
               >
                 mail
               </span>
-              marianne@s-tag.no
+              support@s-tag.no
             </a>
             <Link
               href="/kontakt"
@@ -363,8 +363,8 @@ export default function LandingPage() {
             <Link href="/personvern" className="hover:text-[#0f2a5c]">Personvern</Link>
             <Link href="/vilkar" className="hover:text-[#0f2a5c]">Vilkår</Link>
             <Link href="/kontakt" className="hover:text-[#0f2a5c]">Kontakt</Link>
-            <a href="mailto:marianne@s-tag.no" className="hover:text-[#0f2a5c]">
-              marianne@s-tag.no
+            <a href="mailto:support@s-tag.no" className="hover:text-[#0f2a5c]">
+              support@s-tag.no
             </a>
           </div>
         </div>

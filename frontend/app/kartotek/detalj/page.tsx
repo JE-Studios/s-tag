@@ -178,12 +178,6 @@ function ItemDetailPage() {
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
-              <span
-                className={`inline-flex items-center gap-1.5 ${meta.bg} ${meta.color} text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider mb-2`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
-                {meta.label}
-              </span>
               <h1 className="text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">
                 {item.name}
               </h1>
